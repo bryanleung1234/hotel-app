@@ -1,0 +1,15 @@
+# render.yaml - Render 部署配置
+# 将此文件放在仓库根目录，然后去 Render 导入即可
+
+services:
+  - type: web
+    name: hotel-app
+    env: python
+    region: oregon
+    plan: free
+    buildCommand: pip install flask pyjwt
+    startCommand: python server.py
+    healthCheckPath: /
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.11"
