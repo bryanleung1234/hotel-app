@@ -1,0 +1,6 @@
+@echo off
+cd /d "%~dp0"
+echo [1/2] 安装 Flask...
+python -m pip install flask --quiet --user
+echo [2/2] 启动服务器...
+python server.py

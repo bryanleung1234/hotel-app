@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>上传日报 - 华悦艺术酒店</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏨</text></svg>">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      min-height: 100vh;
+      background: #f0f2f7;
+      font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+      color: #1a1a2e;
+    }
+    .topbar {
+      background: linear-gradient(135deg, #1a1a2e, #16213e);
+      color: #fff; padding: 16px 20px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .topbar h1 { font-size: 18px; font-weight: 600; }
+    .topbar-right { display: flex; align-items: center; gap: 12px; }
+    .user-badge {
+      background: rgba(255,255,255,0.15); border-radius: 20px;
+      padding: 6px 14px; font-size: 13px;
+    }
+    .logout-btn {
+      background: rgba(233,69,96,0.2); border: 1px solid rgba(233,69,96,0.4);
+      color: #ff8fa3; padding: 6px 14px; border-radius: 20px;
+      font-size: 13px; cursor: pointer; border: none;
+    }
+    .container { max-width: 760px; margin: 24px auto; padding: 0 16px; }
+
+    /* Upload area */
+    .upload-card {
+      background: #fff; border-radius: 16px; padding: 28px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.06); margin-bottom: 16px;
+    }
+    .section-title {
+      font-size: 15px; font-weight: 700; color: #1a1a2e;
+      margin-bottom: 14px; display: flex; align-items: center; gap: 8px;
+    }
+    .section-title .num {
+      background: #0f3460; color: #fff; width: 24px; height: 24px;
+      border-radius: 50%; display: flex; align-items: center;
+      justify-content: center; font-size: 12px; font-weight: 700;
+    }
+    textarea {
+      width: 100%; min-height: 220px; padding: 14px;
+      border: 2px solid #e8eaf0; border-radius: 12px;
+      font-size: 14px; line-height: 1.7; resize: vertical;
+      outline: none; font-family: inherit;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    textarea:focus {
+      border-color: #0f3460;
+      box-shadow: 0 0 0 3px rgba(15,52,96,0.1);
+    }
+    textarea::placeholder { color: #b0b5c4; }
+    .paste-hint {
+      margin-top: 8px; font-size: 12px; color: #999; text-align: right;
+    }
+
+    /* Action bar */
+    .action-bar {
+      display: flex; gap: 10px; margin-top: 14px;
+    }
+    .btn {
+      flex: 1; padding: 13px; border: none; border-radius: 12px;
+      font-size: 15px; font-weight: 600; cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, #e94560, #c2315a);
+      color: #fff;
+    }
+    .btn-primary:hover { box-shadow: 0 4px 15px rgba(233,69,96,0.35); transform: translateY(-1px); }
+    .btn-secondary {
+      background: #f0f2f7; color: #555; border: 1.5px solid #e0e0e0;
+    }
+    .btn-secondary:hover { background: #e8eaf0; }
+
+    /* Preview card */
+    .preview-card {
+      background: #fff; border-radius: 16px; padding: 24px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.06); margin-bottom: 16px;
+      display: none;
+    }
+    .preview-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 16px;
+    }
+    .preview-header h3 { font-size: 15px; color: #1a1a2e; }
+    .badge {
+      padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600;
+    }
+    .badge-ok { background: #e8f5e9; color: #2e7d32; }
+    .badge-warn { background: #fff3e0; color: #e65100; }
+    .report-count { font-size: 12px; color: #888; margin-bottom: 14px; }
+    .report-list { display: flex; flex-direction: column; gap: 10px; }
+    .report-item {
+      background: #f8f9fc; border-radius: 12px; padding: 16px;
+      border: 1px solid #e8eaf0;
+    }
+    .report-item-top {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 12px;
+    }
+    .report-date { font-weight: 700; font-size: 15px; color: #0f3460; }
+    .report-rooms { font-size: 13px; color: #666; }
+    /* 渠道明细表格 */
+    .channel-table {
+      width: 100%; border-collapse: collapse; font-size: 13px; margin-bottom: 10px;
+    }
+    .channel-table th {
+      background: #e8edf5; color: #0f3460; padding: 5px 10px;
+      text-align: center; font-weight: 600;
+    }
+    .channel-table td {
+      padding: 5px 10px; text-align: center;
+      border-bottom: 1px solid #f0f2f7; color: #333;
+    }
+    .channel-table tr:last-child td { border-bottom: none; }
+    .channel-table td:first-child { text-align: left; font-weight: 500; }
+    .channel-table .zero { color: #ccc; }
+    /* KPI 行 */
+    .kpi-row {
+      display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px;
+    }
+    .kpi-tag {
+      background: #fff; border: 1px solid #e0e0e0;
+      border-radius: 8px; padding: 4px 12px; font-size: 12px; color: #444;
+    }
+    .kpi-tag strong { color: #0f3460; }
+
+    /* Status bar */
+    .status-bar {
+      background: #fff; border-radius: 16px; padding: 16px 20px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+      display: none;
+    }
+    .status-row {
+      display: flex; align-items: center; gap: 10px;
+      font-size: 14px; color: #333;
+    }
+    .spinner {
+      width: 18px; height: 18px; border: 2px solid #e0e0e0;
+      border-top-color: #0f3460; border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Success toast */
+    .toast {
+      position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
+      background: #1a1a2e; color: #fff; padding: 14px 28px;
+      border-radius: 12px; font-size: 14px; font-weight: 600;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.25);
+      display: none; z-index: 9999;
+    }
+
+    .demo-text-btn {
+      background: #f0f4ff; border: 1.5px solid #0f3460;
+      color: #0f3460; padding: 6px 14px; border-radius: 10px;
+      font-size: 13px; cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <div class="topbar">
+    <h1>🏨 员工 · 上传日报</h1>
+    <div class="topbar-right">
+      <span class="user-badge" id="userBadge">加载中…</span>
+      <button class="logout-btn" onclick="logout()">退出</button>
+    </div>
+  </div>
+
+  <div class="container">
+    <!-- Step 1: Paste text -->
+    <div class="upload-card">
+      <div class="section-title">
+        <span class="num">1</span>
+        粘贴日报文本
+      </div>
+      <textarea id="inputText" placeholder="在此粘贴从微信群导出的日报文本…
+
+支持格式：
+• 多日日报一次性粘贴（自动按日期分割）
+• 支持美团、携程、飞猪、抖音、微信、现金、支付宝等渠道
+• 自动提取房量、收入、入住率、RevPGR 等数据
+• 房型明细（特惠大床房、精选大床房、豪华大床房等）：用于房型经营分析
+
+重要：日报需包含房型明细数据，格式如下：
+特惠大床房：1间：79.2元
+精选大床房：13间:899.65元
+豪华大床房：15间:1040.48元
+城堡亲子房：4间：330元
+麻将双床房：6间：758.92元
+麻将套房：   0间：0元
+圆床房：1间：74.29元"></textarea>
+      <div class="paste-hint">支持多日一次性粘贴，系统自动按日期分割处理</div>
+      <div class="action-bar">
+        <button class="btn btn-secondary" onclick="loadDemo()">📋 填入示例数据</button>
+        <button class="btn btn-primary" onclick="parseText()">🔍 解析预览</button>
+      </div>
+    </div>
+
+    <!-- Step 2: Preview -->
+    <div class="preview-card" id="previewCard">
+      <div class="preview-header">
+        <h3>📋 解析预览</h3>
+        <span class="badge badge-ok" id="parseBadge">已解析</span>
+      </div>
+      <div class="report-count" id="reportCount"></div>
+      <div class="report-list" id="reportList"></div>
+      <div class="action-bar" style="margin-top:16px">
+        <button class="btn btn-secondary" onclick="clearAll()">✏️ 修改内容</button>
+        <button class="btn btn-primary" onclick="submitReports()">📤 提交上传</button>
+      </div>
+    </div>
+
+    <!-- Status -->
+    <div class="status-bar" id="statusBar">
+      <div class="status-row" id="statusRow">
+        <div class="spinner"></div>
+        <span id="statusText">正在上传…</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script src="app.js"></script>
+  <script>
+    const user = requireRole('staff');
+    if (!user) {}
+
+    document.getElementById('userBadge').textContent =
+      user ? `👤 ${user.name || user.phone}` : '未登录';
+
+    let parsedReports = [];
+
+    function showToast(msg, duration = 3000) {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.style.display = 'block';
+      setTimeout(() => t.style.display = 'none', duration);
+    }
+
+    function loadDemo() {
+      const demo = `华悦艺术酒店【冠华店】
+2026年4月27日
+早班: 黄龙英
+中班：尹紫玉
+晚班：陶金花
+总房间数：45间
+美团:8间 ：638.08元
+携程:3间 ：81.62元
+飞猪:0间 ：0元
+抖音:0间 ：0元
+微信，:24间 ：2430元
+现金:1间 ：200元
+支付宝:3间 ：100元
+补房费（微 ）：30元
+超时费（微）：40元
+车票（微）：30元
+补房卡（微）：30元
+水（微）：2元
+当日开房累积：41间
+平均房价：91.63元
+出租率 ：91%
+当日Revpgr：83.38元
+客房日营业额：3756.3元
+总计营业额：3756.3元
+特惠大床房：1间：79.2元
+精选大床房：13间:899.65元
+豪华大床房：15间:1040.48元
+城堡亲子房：4间：330元
+麻将双床房：6间：758.92元
+麻将套房：   0间：0元
+ 圆床房：1间：74.29元
+月开房数：804间
+平均房价：99元
+月出租率：68%
+当月Revpgr：79.61元
+月营业额：79611.88元`;
+      document.getElementById('inputText').value = demo;
+    }
+
+    function parseText() {
+      const text = document.getElementById('inputText').value.trim();
+      if (!text) { showToast('请先粘贴日报文本'); return; }
+
+      parsedReports = Parser.parseText(text);
+
+      if (parsedReports.length === 0) {
+        document.getElementById('parseBadge').textContent = '解析失败';
+        document.getElementById('parseBadge').className = 'badge badge-warn';
+        document.getElementById('reportCount').textContent = '未识别到有效日期，请检查文本格式';
+        document.getElementById('reportList').innerHTML = '<div style="color:#999;font-size:13px;padding:8px">请确认格式包含：华悦艺术酒店【冠华店】+ 年月日日期行</div>';
+        document.getElementById('previewCard').style.display = 'block';
+        return;
+      }
+
+      document.getElementById('parseBadge').textContent = `已解析 ${parsedReports.length} 条`;
+      document.getElementById('parseBadge').className = 'badge badge-ok';
+      document.getElementById('reportCount').textContent = `共 ${parsedReports.length} 天日报，请核对下方数据后提交`;
+
+      const list = document.getElementById('reportList');
+      list.innerHTML = parsedReports.map(r => {
+        const channels = [
+          { name: '美团', rooms: r.meituan_rooms, income: r.meituan_income },
+          { name: '携程', rooms: r.ctrip_rooms,   income: r.ctrip_income },
+          { name: '飞猪', rooms: r.fliggy_rooms,  income: r.fliggy_income },
+          { name: '抖音', rooms: r.douyin_rooms,  income: r.douyin_income },
+          { name: '微信', rooms: r.wechat_rooms,  income: r.wechat_income },
+          { name: '现金', rooms: r.cash_rooms,    income: r.cash_income },
+          { name: '支付宝', rooms: r.alipay_rooms, income: r.alipay_income },
+        ];
+        const rows = channels.map(c => `
+          <tr>
+            <td>${c.name}</td>
+            <td class="${c.rooms === 0 ? 'zero' : ''}">${c.rooms} 间</td>
+            <td class="${c.income === 0 ? 'zero' : ''}">¥${Fmt.currency(c.income)}</td>
+          </tr>`).join('');
+
+        return `
+          <div class="report-item">
+            <div class="report-item-top">
+              <span class="report-date">${Fmt.date(r.date)}  ${r.shift || '全天'}</span>
+              <span class="report-rooms">开房 ${r.total_rooms} 间 · 入住率 ${Fmt.pct(r.occupancy_rate)}%</span>
+            </div>
+            <table class="channel-table">
+              <tr><th>渠道</th><th>房间数</th><th>收入</th></tr>
+              ${rows}
+            </table>
+            <div class="kpi-row">
+              <span class="kpi-tag">均价 <strong>¥${Fmt.currency(r.avg_price)}</strong></span>
+              <span class="kpi-tag">RevPGR <strong>¥${Fmt.currency(r.revpgr)}</strong></span>
+              <span class="kpi-tag">车票收入 <strong>¥${Fmt.currency(r.parking_income)}</strong></span>
+              <span class="kpi-tag">日营业额 <strong>¥${Fmt.currency(r.total_income)}</strong></span>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      document.getElementById('previewCard').style.display = 'block';
+    }
+
+    async function submitReports() {
+      if (!parsedReports.length) return;
+      const sb = document.getElementById('statusBar');
+      const sr = document.getElementById('statusRow');
+      sb.style.display = 'block';
+      document.getElementById('previewCard').style.display = 'none';
+      document.getElementById('statusText').textContent = `正在上传 ${parsedReports.length} 条日报…`;
+
+      try {
+        const res = await API.uploadReports(parsedReports);
+        sr.innerHTML = `<span style="color:#2e7d32;font-weight:700">✓</span><span>上传成功！${res.count} 条日报已保存</span>`;
+        showToast(`✓ ${res.count} 条日报上传成功！`);
+        setTimeout(() => {
+          sb.style.display = 'none';
+          sr.innerHTML = '<div class="spinner"></div><span id="statusText">正在上传…</span>';
+          document.getElementById('inputText').value = '';
+          document.getElementById('previewCard').style.display = 'none';
+          parsedReports = [];
+        }, 2500);
+      } catch (e) {
+        sr.innerHTML = `<span style="color:#c00;font-weight:700">✗</span><span>上传失败：${e.message}</span>`;
+        setTimeout(() => sb.style.display = 'none', 4000);
+      }
+    }
+
+    function clearAll() {
+      document.getElementById('previewCard').style.display = 'none';
+      parsedReports = [];
+    }
+
+    function logout() {
+      Auth.clear();
+      go('index');
+    }
+  </script>
+</body>
+</html>
