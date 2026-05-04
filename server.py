@@ -993,8 +993,9 @@ def api_seed():
 # --- Run ---------------------------------------------------------------------
 if __name__ == '__main__':
     init_db()
-    print('[HOTEL] Server started: http://localhost:3000')
+    port = int(os.environ.get('PORT', 3000))
+    print(f'[HOTEL] Server started: http://localhost:{port}')
     print('[STAFF] Login: 19128957480 (any 6-digit code)')
     print('[BOSS]  Login: 13802531098 / 18602032126')
-    print('📋 预填数据: POST http://localhost:3000/api/seed')
-    app.run(host='0.0.0.0', port=3000, debug=False)
+    print('📋 预填数据: POST http://localhost:{port}/api/seed')
+    app.run(host='0.0.0.0', port=port, debug=False)
