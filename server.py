@@ -1019,7 +1019,7 @@ def page(page):
     return send_from_directory('public', f'{page}.html')
 
 # --- Seed historical data ---------------------------------------------------
-@app.route('/api/seed', methods=['POST'])
+@app.route('/api/seed', methods=['GET', 'POST'])
 def api_seed():
     """预填历史数据（仅演示用，生产环境应删除此路由）"""
     db = get_db()
