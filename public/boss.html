@@ -82,6 +82,22 @@
     }
     .month-selector select:focus { border-color: #0f3460; }
 
+    /* Global month bar */
+    .month-bar {
+      background: #fff; border-radius: 14px; padding: 14px 20px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05); margin-bottom: 16px;
+      display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+    }
+    .month-bar-label { font-size: 13px; font-weight: 700; color: #555; white-space: nowrap; }
+    .month-bar select {
+      padding: 8px 14px; border: 1.5px solid #e0e0e0;
+      border-radius: 10px; font-size: 14px; font-weight: 600;
+      color: #1a1a2e; cursor: pointer; outline: none;
+      background: #fafafa; transition: border-color 0.2s;
+    }
+    .month-bar select:focus { border-color: #0f3460; }
+    .month-bar-hint { font-size: 12px; color: #aaa; margin-left: auto; }
+
     /* Charts */
     .charts-row {
       display: grid; grid-template-columns: 1fr 1fr;
@@ -180,6 +196,15 @@
   </div>
 
   <div class="container">
+    <!-- 全局月份选择器 -->
+    <div class="month-bar">
+      <span class="month-bar-label">📅 查看月份：</span>
+      <select id="yearSelect"></select>
+      <select id="monthSelect"></select>
+      <button class="staff-link" onclick="applyMonthFilter()" style="padding:8px 18px;font-size:14px">🔍 查看</button>
+      <span class="month-bar-hint" id="monthBarHint">切换月份后点击查看，刷新所有数据</span>
+    </div>
+
     <!-- KPI Overview -->
     <div class="kpi-grid" id="kpiGrid">
       <div class="kpi-card">
@@ -214,15 +239,10 @@
       </div>
     </div>
 
-    <!-- Month selector -->
+    <!-- Month selector (hidden - now at top) -->
     <div class="section-card">
       <div class="section-header">
         <div class="section-title"><span class="icon">📈</span> 月度经营报告</div>
-        <div class="month-selector">
-          <select id="yearSelect"></select>
-          <select id="monthSelect"></select>
-          <button class="staff-link" onclick="loadMonth()" style="margin-left:4px">🔍 查看</button>
-        </div>
       </div>
     </div>
 
@@ -305,10 +325,12 @@
     <div class="section-card">
       <div class="section-header">
         <div class="section-title"><span class="icon">📋</span> 日报记录</div>
-        <span id="reportCountLabel" style="font-size:12px;color:#999"></span>
-        <button class="staff-link" onclick="exportDaily()" id="exportDailyBtn" title="导出日报Excel">
-          📥 导出日报Excel
-        </button>
+        <div style="display:flex;align-items:center;gap:10px">
+          <span id="reportCountLabel" style="font-size:12px;color:#999"></span>
+          <button class="staff-link" onclick="exportDaily()" id="exportDailyBtn" title="导出日报Excel">
+            📥 导出日报Excel
+          </button>
+        </div>
       </div>
       <div class="loading-row" id="reportLoading">
         <div class="spinner"></div><span>加载日报记录…</span>
@@ -337,6 +359,7 @@
     let incomeChart = null;
     let occupancyChart = null;
     let currentMonthlyData = null;
+    let currentYear = null, currentMonth = null;
 
     // Init month selectors
     const now = new Date();
@@ -355,9 +378,25 @@
       mSel.appendChild(o);
     }
 
+    // 统一刷新：月度图表 + 日报记录
+    async function applyMonthFilter() {
+      const year = ySel.value;
+      const month = mSel.value;
+      currentYear = year;
+      currentMonth = month;
+      document.getElementById('monthBarHint').textContent =
+        `当前显示：${year}年${parseInt(month)}月`;
+
+      // 并行加载
+      await Promise.all([
+        loadMonth(year, month),
+        loadReportHistory(year, month)
+      ]);
+    }
+
     async function init() {
       try {
-        // Load stats
+        // 先拿 stats 找最新月份
         const stats = await API.getStats();
         document.getElementById('kpiReports').textContent = stats.totalReports || 0;
         document.getElementById('kpiIncome').textContent = Fmt.currency(stats.totalIncome);
@@ -366,11 +405,20 @@
         );
         document.getElementById('kpiLatestDate').textContent = stats.latestDate || '暂无';
 
-        // Load today's report for KPI
+        // 自动选最新有数据的月份
         if (stats.latestDate) {
-          const todayStr = stats.latestDate;
-          const reports = await API.getReports({ year: todayStr.slice(0,4), month: todayStr.slice(5,7) });
-          const latest = reports.reports.find(r => r.date === todayStr);
+          const latestYear  = stats.latestDate.slice(0, 4);
+          const latestMonth = parseInt(stats.latestDate.slice(5, 7));
+          ySel.value = latestYear;
+          mSel.value = latestMonth;
+          currentYear = latestYear;
+          currentMonth = latestMonth;
+          document.getElementById('monthBarHint').textContent =
+            `已自动定位到最新数据：${latestYear}年${latestMonth}月`;
+
+          // 拿最新日期的入住率 / RevPGR
+          const rsp = await API.getReports({ year: latestYear, month: String(latestMonth).padStart(2, '0') });
+          const latest = rsp.reports.find(r => r.date === stats.latestDate);
           if (latest) {
             document.getElementById('kpiOccupancy').textContent = Fmt.pct(latest.occupancy_rate) + '%';
             document.getElementById('kpiRevpgr').textContent = '¥' + Fmt.currency(latest.revpgr);
@@ -378,19 +426,20 @@
           }
         }
 
-        // Load current month
-        loadMonth();
-        loadReportHistory();
+        // 加载当前月的所有模块
+        await Promise.all([
+          loadMonth(ySel.value, mSel.value),
+          loadReportHistory(ySel.value, mSel.value)
+        ]);
       } catch (e) {
-        console.error(e);
+        console.error('init error:', e);
       }
     }
 
-    async function loadMonth() {
-      const year = ySel.value;
-      const month = mSel.value;
-      currentYear = year; currentMonth = month;
-      const el = document.getElementById('channelLoading');
+    async function loadMonth(year, month) {
+      year  = year  || ySel.value;
+      month = month || mSel.value;
+      const el      = document.getElementById('channelLoading');
       const content = document.getElementById('channelContent');
       el.style.display = 'flex';
       content.style.display = 'none';
@@ -595,17 +644,23 @@
       });
     }
 
-    async function loadReportHistory() {
+    async function loadReportHistory(year, month) {
       const rLoading = document.getElementById('reportLoading');
       const rContent = document.getElementById('reportContent');
       rLoading.style.display = 'flex';
       rContent.style.display = 'none';
 
       try {
-        const data = await API.getReports();
+        const params = {};
+        if (year)  params.year  = year;
+        if (month) params.month = String(month).padStart(2, '0');
+        const data = await API.getReports(params);
         rLoading.style.display = 'none';
         rContent.style.display = 'block';
-        document.getElementById('reportCountLabel').textContent = `共 ${data.reports.length} 条记录`;
+        const label = year
+          ? `${year}年${parseInt(month)}月，共 ${data.reports.length} 条`
+          : `全部共 ${data.reports.length} 条`;
+        document.getElementById('reportCountLabel').textContent = label;
 
         const tbody = document.querySelector('#reportTable tbody');
         tbody.innerHTML = data.reports.map(r => `
@@ -648,7 +703,6 @@
       '圆床房':      1,
     };
     const ROOM_TYPE_KEYS = Object.keys(ROOM_TYPE_INVENTORY);
-    let currentYear = null, currentMonth = null;
 
     function renderRoomTypeAnalysis(reports) {
       const el = document.getElementById('roomTypeLoading');

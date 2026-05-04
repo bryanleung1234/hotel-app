@@ -5,11 +5,11 @@ sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8')
 
 """
 酒店日报管理系统 - Python 后端
-依赖: Flask (pip install flask)
-启动: python server.py
+支持 SQLite（本地）和 PostgreSQL（Render云端，通过 DATABASE_URL 环境变量切换）
+依赖: pip install flask pyjwt
+PostgreSQL: pip install psycopg2-binary
 """
 import os
-import sqlite3
 import jwt
 import datetime
 import json
@@ -18,94 +18,253 @@ from flask import Flask, request, jsonify, send_from_directory, g, send_file
 
 app = Flask(__name__, static_folder='public', static_url_path='')
 app.config['SECRET_KEY'] = 'hotel-report-secret-key-2024'
-app.config['DATABASE'] = os.path.join(os.path.dirname(__file__), 'hotel.db')
 JWT_SECRET = app.config['SECRET_KEY']
+
+# 自动检测数据库模式：有 DATABASE_URL 用 PostgreSQL，否则用本地 SQLite
+DATABASE_URL = os.environ.get('DATABASE_URL', '')
+USE_POSTGRES = bool(DATABASE_URL)
+
+if USE_POSTGRES:
+    import psycopg2
+    import psycopg2.extras
+    print(f'[DB] 使用 PostgreSQL')
+else:
+    import sqlite3
+    app.config['DATABASE'] = os.path.join(os.path.dirname(__file__), 'hotel.db')
+    print(f'[DB] 使用 SQLite: {app.config["DATABASE"]}')
 
 # --- Database ----------------------------------------------------------------
 def get_db():
     if 'db' not in g:
-        g.db = sqlite3.connect(app.config['DATABASE'])
-        g.db.row_factory = sqlite3.Row
+        if USE_POSTGRES:
+            conn = psycopg2.connect(DATABASE_URL)
+            conn.autocommit = False
+            g.db = conn
+        else:
+            import sqlite3
+            g.db = sqlite3.connect(app.config['DATABASE'])
+            g.db.row_factory = sqlite3.Row
     return g.db
 
 @app.teardown_appcontext
 def close_db(e=None):
     db = g.pop('db', None)
-    if db: db.close()
+    if db:
+        try:
+            db.close()
+        except Exception:
+            pass
+
+def db_execute(db, sql, params=()):
+    """统一执行 SQL，自动处理 SQLite/PostgreSQL 占位符差异"""
+    if USE_POSTGRES:
+        # PostgreSQL 用 %s 占位符
+        sql_pg = sql.replace('?', '%s')
+        # 处理 INSERT OR IGNORE → INSERT ... ON CONFLICT DO NOTHING
+        sql_pg = sql_pg.replace('INSERT OR IGNORE INTO', 'INSERT INTO').replace(
+            'INSERT OR IGNORE', 'INSERT')
+        if 'INSERT INTO users' in sql_pg and 'OR IGNORE' not in sql and 'IGNORE' not in sql_pg:
+            pass
+        if 'INSERT OR REPLACE INTO monthly_cache' in sql:
+            sql_pg = sql_pg.replace('INSERT OR REPLACE INTO monthly_cache',
+                'INSERT INTO monthly_cache')
+            sql_pg = sql_pg.rstrip(')') + ') ON CONFLICT (year, month) DO UPDATE SET data=EXCLUDED.data, updated_at=EXCLUDED.updated_at'
+        if 'INSERT OR IGNORE INTO users' in sql:
+            sql_pg = sql.replace('?', '%s').replace('INSERT OR IGNORE INTO users',
+                'INSERT INTO users') + ' ON CONFLICT (phone) DO NOTHING'
+        if 'INSERT OR REPLACE INTO daily_reports' in sql:
+            sql_pg = sql.replace('?', '%s').replace('INSERT OR REPLACE INTO daily_reports',
+                'INSERT INTO daily_reports')
+            sql_pg = sql_pg.rstrip(')') + ''') ON CONFLICT (date) DO UPDATE SET
+                shift=EXCLUDED.shift, meituan_rooms=EXCLUDED.meituan_rooms,
+                ctrip_rooms=EXCLUDED.ctrip_rooms, fliggy_rooms=EXCLUDED.fliggy_rooms,
+                douyin_rooms=EXCLUDED.douyin_rooms, wechat_rooms=EXCLUDED.wechat_rooms,
+                cash_rooms=EXCLUDED.cash_rooms, alipay_rooms=EXCLUDED.alipay_rooms,
+                meituan_income=EXCLUDED.meituan_income, ctrip_income=EXCLUDED.ctrip_income,
+                fliggy_income=EXCLUDED.fliggy_income, douyin_income=EXCLUDED.douyin_income,
+                wechat_income=EXCLUDED.wechat_income, cash_income=EXCLUDED.cash_income,
+                alipay_income=EXCLUDED.alipay_income, parking_tickets=EXCLUDED.parking_tickets,
+                parking_income=EXCLUDED.parking_income, tax=EXCLUDED.tax,
+                total_rooms=EXCLUDED.total_rooms, avg_price=EXCLUDED.avg_price,
+                occupancy_rate=EXCLUDED.occupancy_rate, revpgr=EXCLUDED.revpgr,
+                total_income=EXCLUDED.total_income, note=EXCLUDED.note,
+                room_types=EXCLUDED.room_types, uploaded_by=EXCLUDED.uploaded_by'''
+        cur = db.cursor()
+        cur.execute(sql_pg, params)
+        return PGCursorWrapper(cur)
+    else:
+        return db.execute(sql, params)
+
+class PGCursorWrapper:
+    """让 psycopg2 cursor 像 sqlite3 Row 一样可以用字段名访问"""
+    def __init__(self, cur):
+        self._cur = cur
+    def fetchall(self):
+        rows = self._cur.fetchall()
+        if not rows:
+            return []
+        desc = self._cur.description
+        if not desc:
+            return []
+        cols = [d[0] for d in desc]
+        return [dict(zip(cols, row)) for row in rows]
+    def fetchone(self):
+        row = self._cur.fetchone()
+        if not row:
+            return None
+        desc = self._cur.description
+        if not desc:
+            return None
+        cols = [d[0] for d in desc]
+        return dict(zip(cols, row))
+    @property
+    def rowcount(self):
+        return self._cur.rowcount
 
 def init_db():
-    db = sqlite3.connect(app.config['DATABASE'])
-    db.executescript('''
-      CREATE TABLE IF NOT EXISTS users (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        phone TEXT UNIQUE NOT NULL,
-        name TEXT,
-        role TEXT NOT NULL DEFAULT 'staff',
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-      );
-      CREATE TABLE IF NOT EXISTS daily_reports (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        date TEXT NOT NULL,
-        shift TEXT,
-        meituan_rooms INTEGER DEFAULT 0,
-        ctrip_rooms INTEGER DEFAULT 0,
-        fliggy_rooms INTEGER DEFAULT 0,
-        douyin_rooms INTEGER DEFAULT 0,
-        wechat_rooms INTEGER DEFAULT 0,
-        cash_rooms INTEGER DEFAULT 0,
-        alipay_rooms INTEGER DEFAULT 0,
-        meituan_income REAL DEFAULT 0,
-        ctrip_income REAL DEFAULT 0,
-        fliggy_income REAL DEFAULT 0,
-        douyin_income REAL DEFAULT 0,
-        wechat_income REAL DEFAULT 0,
-        cash_income REAL DEFAULT 0,
-        alipay_income REAL DEFAULT 0,
-        parking_tickets INTEGER DEFAULT 0,
-        parking_income REAL DEFAULT 0,
-        tax REAL DEFAULT 0,
-        total_rooms INTEGER DEFAULT 0,
-        avg_price REAL DEFAULT 0,
-        occupancy_rate REAL DEFAULT 0,
-        revpgr REAL DEFAULT 0,
-        total_income REAL DEFAULT 0,
-        note TEXT,
-        room_types TEXT,
-        uploaded_by TEXT,
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-        UNIQUE(date)
-      );
-      CREATE TABLE IF NOT EXISTS monthly_cache (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        year INTEGER NOT NULL,
-        month INTEGER NOT NULL,
-        data TEXT NOT NULL,
-        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-        UNIQUE(year, month)
-      );
-      CREATE TABLE IF NOT EXISTS login_log (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        phone TEXT, role TEXT, ip TEXT, ua TEXT,
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-      );
-      -- 升级已有表：增加 room_types 列（JSON 存储每日房型明细）
-      PRAGMA table_info(daily_reports);
-    ''')
-    # 迁移：为已有数据库添加 room_types 列
-    try:
-        db.execute('ALTER TABLE daily_reports ADD COLUMN room_types TEXT')
+    if USE_POSTGRES:
+        conn = psycopg2.connect(DATABASE_URL)
+        cur = conn.cursor()
+        cur.execute('''
+          CREATE TABLE IF NOT EXISTS users (
+            id SERIAL PRIMARY KEY,
+            phone TEXT UNIQUE NOT NULL,
+            name TEXT,
+            role TEXT NOT NULL DEFAULT 'staff',
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+          )
+        ''')
+        cur.execute('''
+          CREATE TABLE IF NOT EXISTS daily_reports (
+            id SERIAL PRIMARY KEY,
+            date TEXT NOT NULL UNIQUE,
+            shift TEXT,
+            meituan_rooms INTEGER DEFAULT 0,
+            ctrip_rooms INTEGER DEFAULT 0,
+            fliggy_rooms INTEGER DEFAULT 0,
+            douyin_rooms INTEGER DEFAULT 0,
+            wechat_rooms INTEGER DEFAULT 0,
+            cash_rooms INTEGER DEFAULT 0,
+            alipay_rooms INTEGER DEFAULT 0,
+            meituan_income REAL DEFAULT 0,
+            ctrip_income REAL DEFAULT 0,
+            fliggy_income REAL DEFAULT 0,
+            douyin_income REAL DEFAULT 0,
+            wechat_income REAL DEFAULT 0,
+            cash_income REAL DEFAULT 0,
+            alipay_income REAL DEFAULT 0,
+            parking_tickets INTEGER DEFAULT 0,
+            parking_income REAL DEFAULT 0,
+            tax REAL DEFAULT 0,
+            total_rooms INTEGER DEFAULT 0,
+            avg_price REAL DEFAULT 0,
+            occupancy_rate REAL DEFAULT 0,
+            revpgr REAL DEFAULT 0,
+            total_income REAL DEFAULT 0,
+            note TEXT,
+            room_types TEXT,
+            uploaded_by TEXT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+          )
+        ''')
+        cur.execute('''
+          CREATE TABLE IF NOT EXISTS monthly_cache (
+            id SERIAL PRIMARY KEY,
+            year INTEGER NOT NULL,
+            month INTEGER NOT NULL,
+            data TEXT NOT NULL,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            UNIQUE(year, month)
+          )
+        ''')
+        cur.execute('''
+          CREATE TABLE IF NOT EXISTS login_log (
+            id SERIAL PRIMARY KEY,
+            phone TEXT, role TEXT, ip TEXT, ua TEXT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+          )
+        ''')
+        # Seed users
+        for phone, name, role in [
+            ('19128957480', '员工', 'staff'),
+            ('13802531098', '老板A', 'boss'),
+            ('18602032126', '老板B', 'boss'),
+        ]:
+            cur.execute('INSERT INTO users (phone, name, role) VALUES (%s, %s, %s) ON CONFLICT (phone) DO NOTHING',
+                        (phone, name, role))
+        conn.commit()
+        cur.close()
+        conn.close()
+    else:
+        import sqlite3
+        db = sqlite3.connect(app.config['DATABASE'])
+        db.executescript('''
+          CREATE TABLE IF NOT EXISTS users (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            phone TEXT UNIQUE NOT NULL,
+            name TEXT,
+            role TEXT NOT NULL DEFAULT 'staff',
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+          );
+          CREATE TABLE IF NOT EXISTS daily_reports (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            date TEXT NOT NULL,
+            shift TEXT,
+            meituan_rooms INTEGER DEFAULT 0,
+            ctrip_rooms INTEGER DEFAULT 0,
+            fliggy_rooms INTEGER DEFAULT 0,
+            douyin_rooms INTEGER DEFAULT 0,
+            wechat_rooms INTEGER DEFAULT 0,
+            cash_rooms INTEGER DEFAULT 0,
+            alipay_rooms INTEGER DEFAULT 0,
+            meituan_income REAL DEFAULT 0,
+            ctrip_income REAL DEFAULT 0,
+            fliggy_income REAL DEFAULT 0,
+            douyin_income REAL DEFAULT 0,
+            wechat_income REAL DEFAULT 0,
+            cash_income REAL DEFAULT 0,
+            alipay_income REAL DEFAULT 0,
+            parking_tickets INTEGER DEFAULT 0,
+            parking_income REAL DEFAULT 0,
+            tax REAL DEFAULT 0,
+            total_rooms INTEGER DEFAULT 0,
+            avg_price REAL DEFAULT 0,
+            occupancy_rate REAL DEFAULT 0,
+            revpgr REAL DEFAULT 0,
+            total_income REAL DEFAULT 0,
+            note TEXT,
+            room_types TEXT,
+            uploaded_by TEXT,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            UNIQUE(date)
+          );
+          CREATE TABLE IF NOT EXISTS monthly_cache (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            year INTEGER NOT NULL,
+            month INTEGER NOT NULL,
+            data TEXT NOT NULL,
+            updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            UNIQUE(year, month)
+          );
+          CREATE TABLE IF NOT EXISTS login_log (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            phone TEXT, role TEXT, ip TEXT, ua TEXT,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+          );
+        ''')
+        try:
+            db.execute('ALTER TABLE daily_reports ADD COLUMN room_types TEXT')
+            db.commit()
+        except Exception:
+            pass
+        for phone, name, role in [
+            ('19128957480', '员工', 'staff'),
+            ('13802531098', '老板A', 'boss'),
+            ('18602032126', '老板B', 'boss'),
+        ]:
+            db.execute('INSERT OR IGNORE INTO users (phone, name, role) VALUES (?, ?, ?)', (phone, name, role))
         db.commit()
-    except Exception:
-        pass  # 列已存在
-    # Seed users
-    for phone, name, role in [
-        ('19128957480', '员工', 'staff'),
-        ('13802531098', '老板A', 'boss'),
-        ('18602032126', '老板B', 'boss'),
-    ]:
-        db.execute('INSERT OR IGNORE INTO users (phone, name, role) VALUES (?, ?, ?)', (phone, name, role))
-    db.commit()
-    db.close()
+        db.close()
     print('[OK] Database init done')
 
 # --- Auth -------------------------------------------------------------------
@@ -160,11 +319,11 @@ def api_login():
         return jsonify({'error': '验证码为6位数字'}), 400
 
     db = get_db()
-    user = db.execute('SELECT * FROM users WHERE phone = ?', (phone,)).fetchone()
+    user = db_execute(db, 'SELECT * FROM users WHERE phone = ?', (phone,)).fetchone()
     if not user:
         return jsonify({'error': '该手机号未注册'}), 401
 
-    db.execute(
+    db_execute(db,
         'INSERT INTO login_log (phone, role, ip, ua) VALUES (?, ?, ?, ?)',
         (phone, user['role'], request.remote_addr, request.headers.get('User-Agent', ''))
     )
@@ -194,7 +353,7 @@ def api_upload():
     db = get_db()
     for r in reports:
         room_types_json = json.dumps(r.get('room_types') or {}, ensure_ascii=False)
-        db.execute('''
+        db_execute(db, '''
           INSERT OR REPLACE INTO daily_reports
           (date, shift, meituan_rooms, ctrip_rooms, fliggy_rooms, douyin_rooms,
            wechat_rooms, cash_rooms, alipay_rooms, meituan_income, ctrip_income,
@@ -219,7 +378,7 @@ def api_upload():
     months = list({r['date'][:7] for r in reports if r.get('date')})
     for m in months:
         y, mo = m.split('-')
-        db.execute('DELETE FROM monthly_cache WHERE year = ? AND month = ?', (int(y), int(mo)))
+        db_execute(db, 'DELETE FROM monthly_cache WHERE year = ? AND month = ?', (int(y), int(mo)))
     db.commit()
 
     return jsonify({'success': True, 'count': len(reports)})
@@ -233,17 +392,17 @@ def api_reports():
     month = request.args.get('month')
 
     if year and month:
-        rows = db.execute(
+        rows = db_execute(db,
             "SELECT * FROM daily_reports WHERE date LIKE ? ORDER BY date DESC",
             (f'{year}-{month.zfill(2)}%',)
         ).fetchall()
     elif year:
-        rows = db.execute(
+        rows = db_execute(db,
             "SELECT * FROM daily_reports WHERE date LIKE ? ORDER BY date DESC",
             (f'{year}%',)
         ).fetchall()
     else:
-        rows = db.execute('SELECT * FROM daily_reports ORDER BY date DESC').fetchall()
+        rows = db_execute(db, 'SELECT * FROM daily_reports ORDER BY date DESC').fetchall()
 
     reports_out = []
     for r in rows:
@@ -272,7 +431,7 @@ def api_monthly():
     db = get_db()
 
     # Check cache
-    cached = db.execute(
+    cached = db_execute(db,
         'SELECT data FROM monthly_cache WHERE year = ? AND month = ?', (year, month)
     ).fetchone()
     if cached:
@@ -286,7 +445,7 @@ def api_monthly():
         return jsonify(cached_data)
 
     # Build from daily reports
-    rows = db.execute(
+    rows = db_execute(db,
         "SELECT * FROM daily_reports WHERE date LIKE ? ORDER BY date ASC", (padded + '%',)
     ).fetchall()
 
@@ -353,7 +512,7 @@ def api_monthly():
     }
 
     # Cache
-    db.execute(
+    db_execute(db,
         'INSERT OR REPLACE INTO monthly_cache (year, month, data, updated_at) VALUES (?, ?, ?, CURRENT_TIMESTAMP)',
         (year, month, json.dumps(result, ensure_ascii=False))
     )
@@ -365,16 +524,16 @@ def api_monthly():
 @login_required
 def api_dates():
     db = get_db()
-    rows = db.execute('SELECT DISTINCT date FROM daily_reports ORDER BY date DESC').fetchall()
+    rows = db_execute(db, 'SELECT DISTINCT date FROM daily_reports ORDER BY date DESC').fetchall()
     return jsonify({'dates': [r['date'] for r in rows]})
 
 @app.route('/api/reports/stats', methods=['GET'])
 @boss_required
 def api_stats():
     db = get_db()
-    total = db.execute('SELECT COUNT(*) as c FROM daily_reports').fetchone()['c']
-    income = db.execute('SELECT SUM(total_income) as s FROM daily_reports').fetchone()['s'] or 0
-    latest = db.execute('SELECT MAX(date) as d FROM daily_reports').fetchone()['d']
+    total = db_execute(db, 'SELECT COUNT(*) as c FROM daily_reports').fetchone()['c']
+    income = db_execute(db, 'SELECT SUM(total_income) as s FROM daily_reports').fetchone()['s'] or 0
+    latest = db_execute(db, 'SELECT MAX(date) as d FROM daily_reports').fetchone()['d']
     return jsonify({'totalReports': total, 'totalIncome': income, 'latestDate': latest})
 
 # --- 
@@ -404,12 +563,12 @@ def api_export_daily():
     month = request.args.get("month")
     db = get_db()
     if year and month:
-        rows = db.execute(
+        rows = db_execute(db,
             "SELECT * FROM daily_reports WHERE date LIKE ? ORDER BY date ASC",
             (f"{year}-{month.zfill(2)}%",)
         ).fetchall()
     else:
-        rows = db.execute("SELECT * FROM daily_reports ORDER BY date ASC").fetchall()
+        rows = db_execute(db, "SELECT * FROM daily_reports ORDER BY date ASC").fetchall()
 
     wb = Workbook()
     ws = wb.active
@@ -531,12 +690,12 @@ def api_export_roomtypes():
     month = request.args.get("month")
     db = get_db()
     if year and month:
-        rows = db.execute(
+        rows = db_execute(db,
             "SELECT * FROM daily_reports WHERE date LIKE ? ORDER BY date ASC",
             (f"{year}-{month.zfill(2)}%",)
         ).fetchall()
     else:
-        rows = db.execute("SELECT * FROM daily_reports ORDER BY date ASC").fetchall()
+        rows = db_execute(db, "SELECT * FROM daily_reports ORDER BY date ASC").fetchall()
 
     reports = []
     for r in rows:
@@ -808,7 +967,7 @@ def api_seed():
     ]
 
     for r in seed_data:
-        db.execute('''
+        db_execute(db, '''
           INSERT OR REPLACE INTO daily_reports
           (date, shift, meituan_rooms, ctrip_rooms, fliggy_rooms, douyin_rooms,
            wechat_rooms, cash_rooms, alipay_rooms, meituan_income, ctrip_income,
@@ -827,7 +986,8 @@ def api_seed():
           r.get('revpgr',0), r.get('total_income',0)
         ))
     db.commit()
-    db.execute('DELETE FROM monthly_cache').commit()
+    db_execute(db, 'DELETE FROM monthly_cache')
+    db.commit()
     return jsonify({'success': True, 'count': len(seed_data)})
 
 # --- Run ---------------------------------------------------------------------

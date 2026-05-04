@@ -7,7 +7,7 @@ services:
     env: python
     region: oregon
     plan: free
-    buildCommand: pip install flask pyjwt
+    buildCommand: pip install flask pyjwt psycopg2-binary openpyxl
     startCommand: python server.py
     healthCheckPath: /
     envVars:
