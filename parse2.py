@@ -110,11 +110,11 @@ for block in raw:
 results.sort(key=lambda x: x['date'])
 print(f"\n共 {len(results)} 天\n")
 
-# 输出 Python 代码
+# 输出 Python 代码（每个字段单独一行，确保逗号正确）
 lines = ["seed_data = ["]
 for i, r in enumerate(results):
     rt = json.dumps(r['room_types'], ensure_ascii=False) if r['room_types'] else 'None'
-    lines.append("    {'date': '" + r['date'] + "', 'shift': '" + r['shift'] + "',")
+    lines.append(f"    {{'date': '{r['date']}', 'shift': '{r['shift']}',")
     lines.append(f"     'meituan_rooms': {r['meituan_rooms']}, 'meituan_income': {r['meituan_income']},")
     lines.append(f"     'ctrip_rooms': {r['ctrip_rooms']}, 'ctrip_income': {r['ctrip_income']},")
     lines.append(f"     'fliggy_rooms': {r['fliggy_rooms']}, 'fliggy_income': {r['fliggy_income']},")
@@ -125,6 +125,7 @@ for i, r in enumerate(results):
     lines.append(f"     'parking_tickets': {r['parking_tickets']}, 'parking_income': {r['parking_income']},")
     lines.append(f"     'tax': {r['tax']}, 'total_rooms': {r['total_rooms']}, 'avg_price': {r['avg_price']},")
     lines.append(f"     'occupancy_rate': {r['occupancy_rate']}, 'revpgr': {r['revpgr']}, 'total_income': {r['total_income']},")
+    rt_escaped = rt.replace("'", "\\'")
     lines.append(f"     'room_types': {rt}, 'note': '', 'uploaded_by': 'seed'}}")
     if i < len(results) - 1:
         lines[-1] += ","
