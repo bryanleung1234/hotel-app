@@ -60,35 +60,50 @@ def db_execute(db, sql, params=()):
     if USE_POSTGRES:
         # PostgreSQL 用 %s 占位符
         sql_pg = sql.replace('?', '%s')
+        
         # 处理 INSERT OR IGNORE → INSERT ... ON CONFLICT DO NOTHING
-        sql_pg = sql_pg.replace('INSERT OR IGNORE INTO', 'INSERT INTO').replace(
-            'INSERT OR IGNORE', 'INSERT')
-        if 'INSERT INTO users' in sql_pg and 'OR IGNORE' not in sql and 'IGNORE' not in sql_pg:
-            pass
-        if 'INSERT OR REPLACE INTO monthly_cache' in sql:
-            sql_pg = sql_pg.replace('INSERT OR REPLACE INTO monthly_cache',
-                'INSERT INTO monthly_cache')
-            sql_pg = sql_pg.rstrip(')') + ') ON CONFLICT (year, month) DO UPDATE SET data=EXCLUDED.data, updated_at=EXCLUDED.updated_at'
         if 'INSERT OR IGNORE INTO users' in sql:
             sql_pg = sql.replace('?', '%s').replace('INSERT OR IGNORE INTO users',
                 'INSERT INTO users') + ' ON CONFLICT (phone) DO NOTHING'
-        if 'INSERT OR REPLACE INTO daily_reports' in sql:
+        # 处理 INSERT OR REPLACE INTO daily_reports
+        elif 'INSERT OR REPLACE INTO daily_reports' in sql:
             sql_pg = sql.replace('?', '%s').replace('INSERT OR REPLACE INTO daily_reports',
                 'INSERT INTO daily_reports')
-            sql_pg = sql_pg.rstrip(')') + ''') ON CONFLICT (date) DO UPDATE SET
-                shift=EXCLUDED.shift, meituan_rooms=EXCLUDED.meituan_rooms,
-                ctrip_rooms=EXCLUDED.ctrip_rooms, fliggy_rooms=EXCLUDED.fliggy_rooms,
-                douyin_rooms=EXCLUDED.douyin_rooms, wechat_rooms=EXCLUDED.wechat_rooms,
-                cash_rooms=EXCLUDED.cash_rooms, alipay_rooms=EXCLUDED.alipay_rooms,
-                meituan_income=EXCLUDED.meituan_income, ctrip_income=EXCLUDED.ctrip_income,
-                fliggy_income=EXCLUDED.fliggy_income, douyin_income=EXCLUDED.douyin_income,
-                wechat_income=EXCLUDED.wechat_income, cash_income=EXCLUDED.cash_income,
-                alipay_income=EXCLUDED.alipay_income, parking_tickets=EXCLUDED.parking_tickets,
-                parking_income=EXCLUDED.parking_income, tax=EXCLUDED.tax,
-                total_rooms=EXCLUDED.total_rooms, avg_price=EXCLUDED.avg_price,
-                occupancy_rate=EXCLUDED.occupancy_rate, revpgr=EXCLUDED.revpgr,
-                total_income=EXCLUDED.total_income, note=EXCLUDED.note,
-                room_types=EXCLUDED.room_types, uploaded_by=EXCLUDED.uploaded_by'''
+            # 找到 VALUES ( 的位置，插入 ON CONFLICT
+            values_pos = sql_pg.find('VALUES (')
+            if values_pos > 0:
+                # 找到 VALUES 后最后一个 ) 的位置
+                end_paren = sql_pg.rfind(')')
+                if end_paren > values_pos:
+                    on_conflict = ''' ON CONFLICT (date) DO UPDATE SET
+                        shift=EXCLUDED.shift, meituan_rooms=EXCLUDED.meituan_rooms,
+                        ctrip_rooms=EXCLUDED.ctrip_rooms, fliggy_rooms=EXCLUDED.fliggy_rooms,
+                        douyin_rooms=EXCLUDED.douyin_rooms, wechat_rooms=EXCLUDED.wechat_rooms,
+                        cash_rooms=EXCLUDED.cash_rooms, alipay_rooms=EXCLUDED.alipay_rooms,
+                        meituan_income=EXCLUDED.meituan_income, ctrip_income=EXCLUDED.ctrip_income,
+                        fliggy_income=EXCLUDED.fliggy_income, douyin_income=EXCLUDED.douyin_income,
+                        wechat_income=EXCLUDED.wechat_income, cash_income=EXCLUDED.cash_income,
+                        alipay_income=EXCLUDED.alipay_income, parking_tickets=EXCLUDED.parking_tickets,
+                        parking_income=EXCLUDED.parking_income, tax=EXCLUDED.tax,
+                        total_rooms=EXCLUDED.total_rooms, avg_price=EXCLUDED.avg_price,
+                        occupancy_rate=EXCLUDED.occupancy_rate, revpgr=EXCLUDED.revpgr,
+                        total_income=EXCLUDED.total_income, note=EXCLUDED.note,
+                        room_types=EXCLUDED.room_types, uploaded_by=EXCLUDED.uploaded_by'''
+                    sql_pg = sql_pg[:end_paren] + on_conflict
+        # 处理 INSERT OR REPLACE INTO monthly_cache
+        elif 'INSERT OR REPLACE INTO monthly_cache' in sql:
+            sql_pg = sql_pg.replace('INSERT OR REPLACE INTO monthly_cache',
+                'INSERT INTO monthly_cache')
+            values_pos = sql_pg.find('VALUES (')
+            if values_pos > 0:
+                end_paren = sql_pg.rfind(')')
+                if end_paren > values_pos:
+                    sql_pg = sql_pg[:end_paren] + ' ON CONFLICT (year, month) DO UPDATE SET data=EXCLUDED.data, updated_at=EXCLUDED.updated_at'
+        # 其他 INSERT OR IGNORE 转换为普通 INSERT
+        else:
+            sql_pg = sql_pg.replace('INSERT OR IGNORE INTO', 'INSERT INTO').replace(
+                'INSERT OR IGNORE', 'INSERT')
+        
         cur = db.cursor()
         cur.execute(sql_pg, params)
         return PGCursorWrapper(cur)
