@@ -368,32 +368,88 @@ def api_upload():
     db = get_db()
     for r in reports:
         room_types_json = json.dumps(r.get('room_types') or {}, ensure_ascii=False)
-        db_execute(db, '''
-          INSERT OR REPLACE INTO daily_reports
-          (date, shift, meituan_rooms, ctrip_rooms, fliggy_rooms, douyin_rooms,
-           wechat_rooms, cash_rooms, alipay_rooms, meituan_income, ctrip_income,
-           fliggy_income, douyin_income, wechat_income, cash_income, alipay_income,
-           parking_tickets, parking_income, tax, total_rooms, avg_price,
-           occupancy_rate, revpgr, total_income, note, room_types, uploaded_by)
-          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        ''', (
-          r.get('date'), r.get('shift', ''),
-          r.get('meituan_rooms', 0), r.get('ctrip_rooms', 0), r.get('fliggy_rooms', 0),
-          r.get('douyin_rooms', 0), r.get('wechat_rooms', 0), r.get('cash_rooms', 0),
-          r.get('alipay_rooms', 0), r.get('meituan_income', 0), r.get('ctrip_income', 0),
-          r.get('fliggy_income', 0), r.get('douyin_income', 0), r.get('wechat_income', 0),
-          r.get('cash_income', 0), r.get('alipay_income', 0), r.get('parking_tickets', 0),
-          r.get('parking_income', 0), r.get('tax', 0), r.get('total_rooms', 0),
-          r.get('avg_price', 0), r.get('occupancy_rate', 0), r.get('revpgr', 0),
-          r.get('total_income', 0), r.get('note', ''), room_types_json, g.user['phone']
-        ))
+        date_val = r.get('date')
+        shift_val = r.get('shift', '')
+        meituan_rooms = r.get('meituan_rooms', 0)
+        ctrip_rooms = r.get('ctrip_rooms', 0)
+        fliggy_rooms = r.get('fliggy_rooms', 0)
+        douyin_rooms = r.get('douyin_rooms', 0)
+        wechat_rooms = r.get('wechat_rooms', 0)
+        cash_rooms = r.get('cash_rooms', 0)
+        alipay_rooms = r.get('alipay_rooms', 0)
+        meituan_income = r.get('meituan_income', 0)
+        ctrip_income = r.get('ctrip_income', 0)
+        fliggy_income = r.get('fliggy_income', 0)
+        douyin_income = r.get('douyin_income', 0)
+        wechat_income = r.get('wechat_income', 0)
+        cash_income = r.get('cash_income', 0)
+        alipay_income = r.get('alipay_income', 0)
+        parking_tickets = r.get('parking_tickets', 0)
+        parking_income = r.get('parking_income', 0)
+        tax = r.get('tax', 0)
+        total_rooms = r.get('total_rooms', 0)
+        avg_price = r.get('avg_price', 0)
+        occupancy_rate = r.get('occupancy_rate', 0)
+        revpgr = r.get('revpgr', 0)
+        total_income = r.get('total_income', 0)
+        note = r.get('note', '')
+        uploaded_by = g.user['phone']
+
+        if USE_POSTGRES:
+            # PostgreSQL: INSERT...ON CONFLICT DO UPDATE
+            sql = '''INSERT INTO daily_reports
+                (date, shift, meituan_rooms, ctrip_rooms, fliggy_rooms, douyin_rooms,
+                 wechat_rooms, cash_rooms, alipay_rooms, meituan_income, ctrip_income,
+                 fliggy_income, douyin_income, wechat_income, cash_income, alipay_income,
+                 parking_tickets, parking_income, tax, total_rooms, avg_price,
+                 occupancy_rate, revpgr, total_income, note, room_types, uploaded_by)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s,
+                        %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                ON CONFLICT (date) DO UPDATE SET
+                    shift=EXCLUDED.shift, meituan_rooms=EXCLUDED.meituan_rooms,
+                    ctrip_rooms=EXCLUDED.ctrip_rooms, fliggy_rooms=EXCLUDED.fliggy_rooms,
+                    douyin_rooms=EXCLUDED.douyin_rooms, wechat_rooms=EXCLUDED.wechat_rooms,
+                    cash_rooms=EXCLUDED.cash_rooms, alipay_rooms=EXCLUDED.alipay_rooms,
+                    meituan_income=EXCLUDED.meituan_income, ctrip_income=EXCLUDED.ctrip_income,
+                    fliggy_income=EXCLUDED.fliggy_income, douyin_income=EXCLUDED.douyin_income,
+                    wechat_income=EXCLUDED.wechat_income, cash_income=EXCLUDED.cash_income,
+                    alipay_income=EXCLUDED.alipay_income, parking_tickets=EXCLUDED.parking_tickets,
+                    parking_income=EXCLUDED.parking_income, tax=EXCLUDED.tax,
+                    total_rooms=EXCLUDED.total_rooms, avg_price=EXCLUDED.avg_price,
+                    occupancy_rate=EXCLUDED.occupancy_rate, revpgr=EXCLUDED.revpgr,
+                    total_income=EXCLUDED.total_income, note=EXCLUDED.note,
+                    room_types=EXCLUDED.room_types, uploaded_by=EXCLUDED.uploaded_by'''
+            cur = db.cursor()
+            cur.execute(sql, (date_val, shift_val, meituan_rooms, ctrip_rooms, fliggy_rooms, douyin_rooms,
+                               wechat_rooms, cash_rooms, alipay_rooms, meituan_income, ctrip_income,
+                               fliggy_income, douyin_income, wechat_income, cash_income, alipay_income,
+                               parking_tickets, parking_income, tax, total_rooms, avg_price,
+                               occupancy_rate, revpgr, total_income, note, room_types_json, uploaded_by))
+        else:
+            # SQLite: INSERT OR REPLACE
+            db.execute('''INSERT OR REPLACE INTO daily_reports
+                (date, shift, meituan_rooms, ctrip_rooms, fliggy_rooms, douyin_rooms,
+                 wechat_rooms, cash_rooms, alipay_rooms, meituan_income, ctrip_income,
+                 fliggy_income, douyin_income, wechat_income, cash_income, alipay_income,
+                 parking_tickets, parking_income, tax, total_rooms, avg_price,
+                 occupancy_rate, revpgr, total_income, note, room_types, uploaded_by)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)''',
+                (date_val, shift_val, meituan_rooms, ctrip_rooms, fliggy_rooms, douyin_rooms,
+                 wechat_rooms, cash_rooms, alipay_rooms, meituan_income, ctrip_income,
+                 fliggy_income, douyin_income, wechat_income, cash_income, alipay_income,
+                 parking_tickets, parking_income, tax, total_rooms, avg_price,
+                 occupancy_rate, revpgr, total_income, note, room_types_json, uploaded_by))
     db.commit()
 
     # Invalidate monthly cache
     months = list({r['date'][:7] for r in reports if r.get('date')})
     for m in months:
         y, mo = m.split('-')
-        db_execute(db, 'DELETE FROM monthly_cache WHERE year = ? AND month = ?', (int(y), int(mo)))
+        if USE_POSTGRES:
+            cur = db.cursor()
+            cur.execute('DELETE FROM monthly_cache WHERE year = %s AND month = %s', (int(y), int(mo)))
+        else:
+            db.execute('DELETE FROM monthly_cache WHERE year = ? AND month = ?', (int(y), int(mo)))
     db.commit()
 
     return jsonify({'success': True, 'count': len(reports)})
