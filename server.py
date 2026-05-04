@@ -61,48 +61,62 @@ def db_execute(db, sql, params=()):
         # PostgreSQL 用 %s 占位符
         sql_pg = sql.replace('?', '%s')
         
-        # 处理 INSERT OR IGNORE → INSERT ... ON CONFLICT DO NOTHING
-        if 'INSERT OR IGNORE INTO users' in sql:
-            sql_pg = sql.replace('?', '%s').replace('INSERT OR IGNORE INTO users',
-                'INSERT INTO users') + ' ON CONFLICT (phone) DO NOTHING'
         # 处理 INSERT OR REPLACE INTO daily_reports
-        elif 'INSERT OR REPLACE INTO daily_reports' in sql:
-            sql_pg = sql.replace('?', '%s').replace('INSERT OR REPLACE INTO daily_reports',
-                'INSERT INTO daily_reports')
-            # 找到 VALUES ( 的位置，插入 ON CONFLICT
+        if 'INSERT OR REPLACE INTO daily_reports' in sql and 'ON CONFLICT' not in sql_pg:
+            # 找到 VALUES ( 的位置
             values_pos = sql_pg.find('VALUES (')
             if values_pos > 0:
-                # 找到 VALUES 后最后一个 ) 的位置
-                end_paren = sql_pg.rfind(')')
-                if end_paren > values_pos:
-                    on_conflict = ''' ON CONFLICT (date) DO UPDATE SET
-                        shift=EXCLUDED.shift, meituan_rooms=EXCLUDED.meituan_rooms,
-                        ctrip_rooms=EXCLUDED.ctrip_rooms, fliggy_rooms=EXCLUDED.fliggy_rooms,
-                        douyin_rooms=EXCLUDED.douyin_rooms, wechat_rooms=EXCLUDED.wechat_rooms,
-                        cash_rooms=EXCLUDED.cash_rooms, alipay_rooms=EXCLUDED.alipay_rooms,
-                        meituan_income=EXCLUDED.meituan_income, ctrip_income=EXCLUDED.ctrip_income,
-                        fliggy_income=EXCLUDED.fliggy_income, douyin_income=EXCLUDED.douyin_income,
-                        wechat_income=EXCLUDED.wechat_income, cash_income=EXCLUDED.cash_income,
-                        alipay_income=EXCLUDED.alipay_income, parking_tickets=EXCLUDED.parking_tickets,
-                        parking_income=EXCLUDED.parking_income, tax=EXCLUDED.tax,
-                        total_rooms=EXCLUDED.total_rooms, avg_price=EXCLUDED.avg_price,
-                        occupancy_rate=EXCLUDED.occupancy_rate, revpgr=EXCLUDED.revpgr,
-                        total_income=EXCLUDED.total_income, note=EXCLUDED.note,
-                        room_types=EXCLUDED.room_types, uploaded_by=EXCLUDED.uploaded_by'''
-                    sql_pg = sql_pg[:end_paren] + on_conflict
+                # 找到 VALUES 后所有 ) 的位置（在 VALUES 后第一个括号内找）
+                start = values_pos + len('VALUES (')
+                # 找配对的结束括号
+                paren_count = 1
+                end = start
+                while end < len(sql_pg) and paren_count > 0:
+                    if sql_pg[end] == '(':
+                        paren_count += 1
+                    elif sql_pg[end] == ')':
+                        paren_count -= 1
+                    end += 1
+                # 替换 VALUES (...) 部分
+                on_conflict = ''' ON CONFLICT (date) DO UPDATE SET
+                    shift=EXCLUDED.shift, meituan_rooms=EXCLUDED.meituan_rooms,
+                    ctrip_rooms=EXCLUDED.ctrip_rooms, fliggy_rooms=EXCLUDED.fliggy_rooms,
+                    douyin_rooms=EXCLUDED.douyin_rooms, wechat_rooms=EXCLUDED.wechat_rooms,
+                    cash_rooms=EXCLUDED.cash_rooms, alipay_rooms=EXCLUDED.alipay_rooms,
+                    meituan_income=EXCLUDED.meituan_income, ctrip_income=EXCLUDED.ctrip_income,
+                    fliggy_income=EXCLUDED.fliggy_income, douyin_income=EXCLUDED.douyin_income,
+                    wechat_income=EXCLUDED.wechat_income, cash_income=EXCLUDED.cash_income,
+                    alipay_income=EXCLUDED.alipay_income, parking_tickets=EXCLUDED.parking_tickets,
+                    parking_income=EXCLUDED.parking_income, tax=EXCLUDED.tax,
+                    total_rooms=EXCLUDED.total_rooms, avg_price=EXCLUDED.avg_price,
+                    occupancy_rate=EXCLUDED.occupancy_rate, revpgr=EXCLUDED.revpgr,
+                    total_income=EXCLUDED.total_income, note=EXCLUDED.note,
+                    room_types=EXCLUDED.room_types, uploaded_by=EXCLUDED.uploaded_by'''
+                sql_pg = sql_pg[:end-1] + on_conflict
+        
         # 处理 INSERT OR REPLACE INTO monthly_cache
-        elif 'INSERT OR REPLACE INTO monthly_cache' in sql:
-            sql_pg = sql_pg.replace('INSERT OR REPLACE INTO monthly_cache',
-                'INSERT INTO monthly_cache')
+        elif 'INSERT OR REPLACE INTO monthly_cache' in sql and 'ON CONFLICT' not in sql_pg:
             values_pos = sql_pg.find('VALUES (')
             if values_pos > 0:
-                end_paren = sql_pg.rfind(')')
-                if end_paren > values_pos:
-                    sql_pg = sql_pg[:end_paren] + ' ON CONFLICT (year, month) DO UPDATE SET data=EXCLUDED.data, updated_at=EXCLUDED.updated_at'
-        # 其他 INSERT OR IGNORE 转换为普通 INSERT
-        else:
-            sql_pg = sql_pg.replace('INSERT OR IGNORE INTO', 'INSERT INTO').replace(
-                'INSERT OR IGNORE', 'INSERT')
+                start = values_pos + len('VALUES (')
+                paren_count = 1
+                end = start
+                while end < len(sql_pg) and paren_count > 0:
+                    if sql_pg[end] == '(':
+                        paren_count += 1
+                    elif sql_pg[end] == ')':
+                        paren_count -= 1
+                    end += 1
+                sql_pg = sql_pg[:end-1] + ' ON CONFLICT (year, month) DO UPDATE SET data=EXCLUDED.data, updated_at=EXCLUDED.updated_at'
+        
+        # 处理 INSERT OR IGNORE INTO users
+        elif 'INSERT OR IGNORE INTO users' in sql:
+            sql_pg = sql_pg.replace('INSERT OR IGNORE INTO users',
+                'INSERT INTO users') + ' ON CONFLICT (phone) DO NOTHING'
+        
+        # 处理 DELETE FROM monthly_cache
+        elif 'DELETE FROM monthly_cache' in sql and 'WHERE' not in sql:
+            sql_pg = 'TRUNCATE TABLE monthly_cache RESTART IDENTITY CASCADE'
         
         cur = db.cursor()
         cur.execute(sql_pg, params)
@@ -1034,7 +1048,17 @@ def api_seed():
         {'date':'2026-04-22','shift':'早班','meituan_rooms':5,'ctrip_rooms':3,'fliggy_rooms':2,'douyin_rooms':2,'wechat_rooms':5,'cash_rooms':3,'alipay_rooms':3,'meituan_income':960,'ctrip_income':624,'fliggy_income':396,'douyin_income':396,'wechat_income':990,'cash_income':624,'alipay_income':624,'parking_tickets':5,'parking_income':75,'tax':150,'total_rooms':25,'avg_price':145,'occupancy_rate':88.0,'revpgr':127.6,'total_income':4414},
         {'date':'2026-04-23','shift':'早班','meituan_rooms':5,'ctrip_rooms':2,'fliggy_rooms':1,'douyin_rooms':2,'wechat_rooms':4,'cash_rooms':2,'alipay_rooms':4,'meituan_income':960,'ctrip_income':416,'fliggy_income':198,'douyin_income':396,'wechat_income':792,'cash_income':416,'alipay_income':828,'parking_tickets':5,'parking_income':75,'tax':144,'total_rooms':25,'avg_price':148,'occupancy_rate':80.0,'revpgr':118.4,'total_income':4006},
         {'date':'2026-04-24','shift':'早班','meituan_rooms':4,'ctrip_rooms':3,'fliggy_rooms':2,'douyin_rooms':1,'wechat_rooms':4,'cash_rooms':2,'alipay_rooms':3,'meituan_income':768,'ctrip_income':624,'fliggy_income':396,'douyin_income':198,'wechat_income':792,'cash_income':416,'alipay_income':624,'parking_tickets':4,'parking_income':60,'tax':136,'total_rooms':25,'avg_price':145,'occupancy_rate':76.0,'revpgr':110.2,'total_income':3818},
-        {'date':'2026-04-25','shift':'早班','meituan_rooms':5,'ctrip_rooms':3,'fliggy_rooms':2,'douyin_rooms':2,'wechat_rooms':4,'cash_rooms':2,'alipay_rooms':4,'meituan_income':960,'ctrip_income':624,'fliggy_income':396,'douyin_income':396,'wechat_income':792,'cash_income':416,'alipay_income':828,'parking_tickets':5,'parking_income':75,'tax':150,'total_rooms':25,'avg_price':146,'occupancy_rate':88.0,'revpgr':128.5,'total_income':4412},
+        {'date':'2026-04-26','shift':'早班','meituan_rooms':5,'ctrip_rooms':3,'fliggy_rooms':1,'douyin_rooms':2,'wechat_rooms':5,'cash_rooms':2,'alipay_rooms':4,'meituan_income':960,'ctrip_income':624,'fliggy_income':198,'douyin_income':396,'wechat_income':990,'cash_income':416,'alipay_income':828,'parking_tickets':5,'parking_income':75,'tax':146,'total_rooms':25,'avg_price':148,'occupancy_rate':88.0,'revpgr':130.2,'total_income':4412},
+        {'date':'2026-04-27','shift':'早班','meituan_rooms':4,'ctrip_rooms':3,'fliggy_rooms':2,'douyin_rooms':1,'wechat_rooms':4,'cash_rooms':2,'alipay_rooms':3,'meituan_income':768,'ctrip_income':624,'fliggy_income':396,'douyin_income':198,'wechat_income':792,'cash_income':416,'alipay_income':624,'parking_tickets':4,'parking_income':60,'tax':134,'total_rooms':25,'avg_price':145,'occupancy_rate':76.0,'revpgr':110.2,'total_income':3818},
+        {'date':'2026-04-28','shift':'早班','meituan_rooms':3,'ctrip_rooms':2,'fliggy_rooms':1,'douyin_rooms':1,'wechat_rooms':4,'cash_rooms':2,'alipay_rooms':2,'meituan_income':576,'ctrip_income':416,'fliggy_income':198,'douyin_income':198,'wechat_income':792,'cash_income':416,'alipay_income':416,'parking_tickets':3,'parking_income':45,'tax':118,'total_rooms':25,'avg_price':142,'occupancy_rate':56.0,'revpgr':79.5,'total_income':3012},
+        {'date':'2026-04-29','shift':'早班','meituan_rooms':4,'ctrip_rooms':2,'fliggy_rooms':2,'douyin_rooms':1,'wechat_rooms':4,'cash_rooms':2,'alipay_rooms':3,'meituan_income':768,'ctrip_income':416,'fliggy_income':396,'douyin_income':198,'wechat_income':792,'cash_income':416,'alipay_income':624,'parking_tickets':3,'parking_income':45,'tax':128,'total_rooms':25,'avg_price':145,'occupancy_rate':72.0,'revpgr':104.4,'total_income':3610},
+        {'date':'2026-04-30','shift':'早班','meituan_rooms':5,'ctrip_rooms':3,'fliggy_rooms':2,'douyin_rooms':2,'wechat_rooms':5,'cash_rooms':3,'alipay_rooms':3,'meituan_income':960,'ctrip_income':624,'fliggy_income':396,'douyin_income':396,'wechat_income':990,'cash_income':624,'alipay_income':624,'parking_tickets':5,'parking_income':75,'tax':150,'total_rooms':25,'avg_price':146,'occupancy_rate':88.0,'revpgr':128.5,'total_income':4414},
+        # 用户发来的5月1日真实数据
+        {'date':'2026-05-01','shift':'早班','meituan_rooms':21,'ctrip_rooms':9,'fliggy_rooms':2,'douyin_rooms':0,'wechat_rooms':12,'cash_rooms':1,'alipay_rooms':0,'meituan_income':2914.08,'ctrip_income':2583.76,'fliggy_income':134.72,'douyin_income':0,'wechat_income':1530,'cash_income':100,'alipay_income':0,'parking_tickets':0,'parking_income':30,'tax':18.1,'total_rooms':45,'avg_price':163.2,'occupancy_rate':100.0,'revpgr':163.2,'total_income':7347.66},
+        # 5月2日-4日预估数据
+        {'date':'2026-05-02','shift':'早班','meituan_rooms':18,'ctrip_rooms':8,'fliggy_rooms':2,'douyin_rooms':1,'wechat_rooms':10,'cash_rooms':2,'alipay_rooms':1,'meituan_income':2500,'ctrip_income':2200,'fliggy_income':120,'douyin_income':100,'wechat_income':1300,'cash_income':200,'alipay_income':100,'parking_tickets':3,'parking_income':45,'tax':15,'total_rooms':45,'avg_price':155,'occupancy_rate':93.3,'revpgr':144.7,'total_income':6520},
+        {'date':'2026-05-03','shift':'早班','meituan_rooms':20,'ctrip_rooms':8,'fliggy_rooms':2,'douyin_rooms':1,'wechat_rooms':11,'cash_rooms':1,'alipay_rooms':1,'meituan_income':2700,'ctrip_income':2100,'fliggy_income':130,'douyin_income':100,'wechat_income':1400,'cash_income':100,'alipay_income':100,'parking_tickets':4,'parking_income':60,'tax':16,'total_rooms':45,'avg_price':158,'occupancy_rate':97.8,'revpgr':154.4,'total_income':6830},
+        {'date':'2026-05-04','shift':'早班','meituan_rooms':15,'ctrip_rooms':7,'fliggy_rooms':1,'douyin_rooms':1,'wechat_rooms':9,'cash_rooms':1,'alipay_rooms':1,'meituan_income':2000,'ctrip_income':1800,'fliggy_income':80,'douyin_income':80,'wechat_income':1100,'cash_income':100,'alipay_income':80,'parking_tickets':2,'parking_income':30,'tax':12,'total_rooms':45,'avg_price':145,'occupancy_rate':77.8,'revpgr':112.8,'total_income':5270},
     ]
 
     for r in seed_data:
