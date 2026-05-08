@@ -33,13 +33,52 @@
       font-size: 13px; cursor: pointer; border: none;
     }
 
-    .container { max-width: 1100px; margin: 0 auto; padding: 20px 16px; }
+    .container { max-width: 1400px; margin: 0 auto; padding: 20px 16px; }
+
+    /* Month selector */
+    .month-bar {
+      background: #fff; border-radius: 14px; padding: 14px 20px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05); margin-bottom: 20px;
+      display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+    }
+    .month-bar-label { font-size: 13px; font-weight: 700; color: #555; white-space: nowrap; }
+    .month-bar select {
+      padding: 8px 14px; border: 1.5px solid #e0e0e0;
+      border-radius: 10px; font-size: 14px; font-weight: 600;
+      color: #1a1a2e; cursor: pointer; outline: none;
+      background: #fafafa; transition: border-color 0.2s;
+    }
+    .month-bar select:focus { border-color: #0f3460; }
+    .month-bar-hint { font-size: 12px; color: #aaa; margin-left: auto; }
+    .staff-link {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: #f0f4ff; border: 1px solid #c5d0f0;
+      color: #0f3460; padding: 8px 16px; border-radius: 10px;
+      font-size: 13px; font-weight: 600; cursor: pointer;
+      text-decoration: none; transition: all 0.2s;
+    }
+    .staff-link:hover { background: #e0e8ff; }
+
+    /* Section Card */
+    .section-card {
+      background: #fff; border-radius: 16px; padding: 24px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.05); margin-bottom: 20px;
+    }
+    .section-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 18px;
+    }
+    .section-title {
+      font-size: 15px; font-weight: 700; color: #1a1a2e;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .section-title .icon { font-size: 18px; }
 
     /* KPI Cards */
     .kpi-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 12px; margin-bottom: 16px;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 12px; margin-bottom: 20px;
     }
     .kpi-card {
       background: #fff; border-radius: 16px; padding: 20px;
@@ -55,105 +94,80 @@
     .kpi-value.orange { color: #e65100; }
     .kpi-sub { font-size: 12px; color: #aaa; margin-top: 4px; }
 
-    /* Section */
-    .section-card {
-      background: #fff; border-radius: 16px; padding: 24px;
-      box-shadow: 0 2px 12px rgba(0,0,0,0.05); margin-bottom: 16px;
-    }
-    .section-header {
-      display: flex; align-items: center; justify-content: space-between;
-      margin-bottom: 18px;
-    }
-    .section-title {
-      font-size: 15px; font-weight: 700; color: #1a1a2e;
-      display: flex; align-items: center; gap: 8px;
-    }
-    .section-title .icon { font-size: 18px; }
-
-    /* Month selector */
-    .month-selector {
-      display: flex; align-items: center; gap: 10px;
-    }
-    .month-selector select {
-      padding: 8px 14px; border: 1.5px solid #e0e0e0;
-      border-radius: 10px; font-size: 14px; font-weight: 600;
-      color: #1a1a2e; cursor: pointer; outline: none;
-      background: #fafafa;
-    }
-    .month-selector select:focus { border-color: #0f3460; }
-
-    /* Global month bar */
-    .month-bar {
-      background: #fff; border-radius: 14px; padding: 14px 20px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.05); margin-bottom: 16px;
-      display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
-    }
-    .month-bar-label { font-size: 13px; font-weight: 700; color: #555; white-space: nowrap; }
-    .month-bar select {
-      padding: 8px 14px; border: 1.5px solid #e0e0e0;
-      border-radius: 10px; font-size: 14px; font-weight: 600;
-      color: #1a1a2e; cursor: pointer; outline: none;
-      background: #fafafa; transition: border-color 0.2s;
-    }
-    .month-bar select:focus { border-color: #0f3460; }
-    .month-bar-hint { font-size: 12px; color: #aaa; margin-left: auto; }
-
-    /* Charts */
-    .charts-row {
-      display: grid; grid-template-columns: 1fr 1fr;
-      gap: 16px; margin-bottom: 16px;
+    /* Charts Grid */
+    .charts-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+      gap: 20px;
+      margin-bottom: 20px;
     }
     .chart-card {
       background: #fff; border-radius: 16px; padding: 20px;
       box-shadow: 0 2px 12px rgba(0,0,0,0.05);
     }
     .chart-title { font-size: 13px; font-weight: 700; color: #555; margin-bottom: 12px; }
-    canvas { max-height: 220px; }
+    canvas { max-height: 280px; }
 
-    /* Channel table */
-    .channel-table { width: 100%; border-collapse: collapse; font-size: 13px; }
-    .channel-table th {
+    /* Two Column Layout */
+    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+
+    /* Tables */
+    .data-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    .data-table th {
       background: #f5f6fa; padding: 10px 12px; text-align: left;
       font-weight: 600; color: #666; border-radius: 8px;
     }
-    .channel-table td { padding: 10px 12px; border-bottom: 1px solid #f0f0f0; }
-    .channel-table tr:last-child td { border-bottom: none; }
-    .channel-table .num { font-weight: 700; color: #0f3460; }
-    .channel-table .money { font-weight: 700; color: #e94560; }
+    .data-table td { padding: 10px 12px; border-bottom: 1px solid #f0f0f0; }
+    .data-table tr:last-child td { border-bottom: none; }
+    .data-table tr:hover { background: #f8f9fc; }
+    .data-table .num { font-weight: 700; color: #0f3460; }
+    .data-table .money { font-weight: 700; color: #e94560; }
+    .data-table .rate { font-weight: 700; color: #2e7d32; }
 
-    /* Report table */
-    .report-table { width: 100%; border-collapse: collapse; font-size: 13px; }
-    .report-table th {
-      background: #f5f6fa; padding: 10px 8px; text-align: center;
-      font-weight: 600; color: #666; white-space: nowrap;
+    /* Channel Card */
+    .channel-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 12px;
     }
-    .report-table th:first-child { border-radius: 8px 0 0 8px; text-align: left; }
-    .report-table th:last-child { border-radius: 0 8px 8px 0; }
-    .report-table td { padding: 9px 8px; border-bottom: 1px solid #f5f6fa; text-align: center; }
-    .report-table td:first-child { text-align: left; font-weight: 600; color: #0f3460; }
-    .report-table tr:hover { background: #f8f9fc; }
+    .channel-item {
+      background: #f8f9fc; border-radius: 12px; padding: 16px;
+      display: flex; align-items: center; gap: 12px;
+    }
+    .channel-icon { font-size: 28px; }
+    .channel-info { flex: 1; }
+    .channel-name { font-weight: 600; font-size: 13px; color: #555; }
+    .channel-value { font-size: 18px; font-weight: 700; color: #1a1a2e; }
+    .channel-sub { font-size: 11px; color: #888; }
 
-    /* Diagnosis */
-    .diagnosis {
-      background: linear-gradient(135deg, #fff8f0, #fff5f0);
-      border: 1px solid #ffe0c0; border-radius: 14px;
-      padding: 18px 20px;
+    /* Room Type Card */
+    .roomtype-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 12px;
     }
-    .diagnosis-item {
-      display: flex; align-items: flex-start; gap: 10px;
-      padding: 10px 0; border-bottom: 1px dashed #f0d8c0;
-      font-size: 13px; line-height: 1.6;
+    .roomtype-item {
+      background: linear-gradient(135deg, #f8f9fc, #fff);
+      border: 1px solid #e8e8f0; border-radius: 12px; padding: 14px;
     }
-    .diagnosis-item:last-child { border-bottom: none; }
-    .diagnosis-icon { font-size: 16px; flex-shrink: 0; }
-    .diagnosis-text strong { color: #e65100; }
+    .roomtype-name { font-weight: 600; font-size: 13px; color: #555; margin-bottom: 8px; }
+    .roomtype-row { display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 4px; }
+    .roomtype-label { color: #888; }
+    .roomtype-value { font-weight: 600; color: #1a1a2e; }
 
-    /* Empty state */
-    .empty-state {
-      text-align: center; padding: 60px 20px; color: #999;
+    /* Daily Reports Table */
+    .daily-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    .daily-table th {
+      background: linear-gradient(135deg, #1a1a2e, #16213e);
+      color: #fff; padding: 10px 8px; text-align: center;
+      font-weight: 600; position: sticky; top: 0;
     }
-    .empty-state .icon { font-size: 48px; margin-bottom: 12px; }
-    .empty-state p { font-size: 14px; }
+    .daily-table th:first-child { border-radius: 8px 0 0 8px; text-align: left; }
+    .daily-table th:last-child { border-radius: 0 8px 8px 0; }
+    .daily-table td { padding: 8px; border-bottom: 1px solid #f0f0f0; text-align: center; }
+    .daily-table td:first-child { text-align: left; font-weight: 600; color: #0f3460; }
+    .daily-table tr:hover { background: #f8f9fc; }
+    .table-container { max-height: 400px; overflow-y: auto; border-radius: 8px; }
 
     /* Loading */
     .loading-row {
@@ -167,27 +181,46 @@
     }
     @keyframes spin { to { transform: rotate(360deg); } }
 
-    /* Staff upload link */
-    .staff-link {
-      display: inline-flex; align-items: center; gap: 6px;
-      background: #f0f4ff; border: 1px solid #c5d0f0;
-      color: #0f3460; padding: 8px 16px; border-radius: 10px;
-      font-size: 13px; font-weight: 600; cursor: pointer;
-      text-decoration: none; transition: all 0.2s;
-    }
-    .staff-link:hover { background: #e0e8ff; }
+    /* Empty State */
+    .empty-state { text-align: center; padding: 60px 20px; color: #999; }
+    .empty-state .icon { font-size: 48px; margin-bottom: 12px; }
+    .empty-state p { font-size: 14px; }
 
+    /* Badge */
+    .badge {
+      display: inline-block; padding: 3px 8px; border-radius: 10px;
+      font-size: 11px; font-weight: 600;
+    }
+    .badge-green { background: #e8f5e9; color: #2e7d32; }
+    .badge-red { background: #ffebee; color: #c62828; }
+    .badge-orange { background: #fff3e0; color: #e65100; }
+    .badge-blue { background: #e3f2fd; color: #1565c0; }
+
+    /* Tab Navigation */
+    .tabs {
+      display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap;
+    }
+    .tab-btn {
+      padding: 8px 16px; border: none; border-radius: 8px;
+      background: #f0f0f0; color: #666; font-size: 13px;
+      font-weight: 600; cursor: pointer; transition: all 0.2s;
+    }
+    .tab-btn.active { background: #0f3460; color: #fff; }
+    .tab-btn:hover:not(.active) { background: #e0e0e0; }
+
+    /* Responsive */
     @media (max-width: 768px) {
-      .charts-row { grid-template-columns: 1fr; }
+      .charts-grid { grid-template-columns: 1fr; }
+      .two-col { grid-template-columns: 1fr; }
       .kpi-grid { grid-template-columns: repeat(2, 1fr); }
-      .report-table { font-size: 11px; }
-      .report-table th, .report-table td { padding: 7px 4px; }
+      .daily-table { font-size: 11px; }
+      .daily-table th, .daily-table td { padding: 6px 4px; }
     }
   </style>
 </head>
 <body>
   <div class="topbar">
-    <h1>📊 经营总览 · 华悦艺术酒店</h1>
+    <h1>📊 华悦艺术酒店 · 冠华店经营总览</h1>
     <div class="topbar-right">
       <a class="staff-link" href="staff.html">👤 员工上传</a>
       <span class="user-badge" id="userBadge">加载中…</span>
@@ -196,718 +229,510 @@
   </div>
 
   <div class="container">
-    <!-- 全局月份选择器 -->
+    <!-- 月份选择器 -->
     <div class="month-bar">
       <span class="month-bar-label">📅 查看月份：</span>
       <select id="yearSelect"></select>
       <select id="monthSelect"></select>
-      <button class="staff-link" onclick="applyMonthFilter()" style="padding:8px 18px;font-size:14px">🔍 查看</button>
+      <button class="staff-link" onclick="loadData()" style="padding:8px 18px;font-size:14px">🔍 查看</button>
       <span class="month-bar-hint" id="monthBarHint">切换月份后点击查看，刷新所有数据</span>
     </div>
 
-    <!-- KPI Overview -->
-    <div class="kpi-grid" id="kpiGrid">
-      <div class="kpi-card">
-        <div class="kpi-label">总报表数</div>
-        <div class="kpi-value blue" id="kpiReports">—</div>
-        <div class="kpi-sub">已上传日报</div>
-      </div>
-      <div class="kpi-card">
-        <div class="kpi-label">总收入（元）</div>
-        <div class="kpi-value red" id="kpiIncome">—</div>
-        <div class="kpi-sub">累计收入</div>
-      </div>
-      <div class="kpi-card">
-        <div class="kpi-label">月均收入</div>
-        <div class="kpi-value red" id="kpiAvgIncome">—</div>
-        <div class="kpi-sub">月平均</div>
-      </div>
-      <div class="kpi-card">
-        <div class="kpi-label">最新入住率</div>
-        <div class="kpi-value green" id="kpiOccupancy">—</div>
-        <div class="kpi-sub" id="kpiOccupancyDate">—</div>
-      </div>
-      <div class="kpi-card">
-        <div class="kpi-label">RevPGR</div>
-        <div class="kpi-value orange" id="kpiRevpgr">—</div>
-        <div class="kpi-sub">收益管理指标</div>
-      </div>
-      <div class="kpi-card">
-        <div class="kpi-label">最近上报</div>
-        <div class="kpi-value blue" id="kpiLatestDate" style="font-size:18px">—</div>
-        <div class="kpi-sub">最新数据日期</div>
-      </div>
-    </div>
-
-    <!-- Month selector (hidden - now at top) -->
+    <!-- ==================== 模块一：月度总概况 ==================== -->
     <div class="section-card">
       <div class="section-header">
-        <div class="section-title"><span class="icon">📈</span> 月度经营报告</div>
+        <div class="section-title"><span class="icon">🏆</span> 月度总概况</div>
+        <span class="badge badge-blue" id="reportCountBadge">0 天</span>
+      </div>
+      <div class="kpi-grid" id="kpiGrid">
+        <div class="kpi-card">
+          <div class="kpi-label">报表数</div>
+          <div class="kpi-value blue" id="kpiReports">—</div>
+          <div class="kpi-sub">已上传日报</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">月总收入</div>
+          <div class="kpi-value red" id="kpiIncome">—</div>
+          <div class="kpi-sub">累计收入</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">日均收入</div>
+          <div class="kpi-value red" id="kpiAvgIncome">—</div>
+          <div class="kpi-sub">月平均</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">平均入住率</div>
+          <div class="kpi-value green" id="kpiOccupancy">—</div>
+          <div class="kpi-sub" id="kpiOccupancyHint">—</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">平均房价</div>
+          <div class="kpi-value orange" id="kpiAvgPrice">—</div>
+          <div class="kpi-sub">RevPGR</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">总开房数</div>
+          <div class="kpi-value blue" id="kpiTotalRooms">—</div>
+          <div class="kpi-sub">间夜数</div>
+        </div>
       </div>
     </div>
 
-    <!-- Charts row -->
-    <div class="charts-row">
+    <!-- ==================== 模块二：趋势图表 ==================== -->
+    <div class="charts-grid">
       <div class="chart-card">
-        <div class="chart-title">💰 每日收入趋势</div>
-        <canvas id="incomeChart"></canvas>
+        <div class="chart-title">📈 开房数量与营业额趋势（柱状图）</div>
+        <canvas id="roomsIncomeChart"></canvas>
       </div>
       <div class="chart-card">
-        <div class="chart-title">📊 入住率趋势</div>
-        <canvas id="occupancyChart"></canvas>
+        <div class="chart-title">📉 入住率与RevPGR趋势（折线图）</div>
+        <canvas id="occRevpgrChart"></canvas>
       </div>
     </div>
 
-    <!-- Channel + Weekly -->
-    <div class="section-card" id="monthlySection">
+    <!-- ==================== 模块三：各渠道经营数据 ==================== -->
+    <div class="section-card">
       <div class="section-header">
-        <div class="section-title"><span class="icon">🏢</span> 渠道分析</div>
+        <div class="section-title"><span class="icon">🏢</span> 各渠道经营数据</div>
       </div>
-      <div class="loading-row" id="channelLoading">
-        <div class="spinner"></div><span>加载中…</span>
+      <div class="channel-grid" id="channelGrid">
+        <!-- 动态填充 -->
       </div>
-      <div id="channelContent" style="display:none">
-        <div style="overflow-x:auto">
-          <table class="channel-table" id="channelTable">
-            <thead><tr><th>渠道</th><th>间夜数</th><th>占比</th><th>收入（元）</th><th>占比</th><th>单价（元）</th></tr></thead>
-            <tbody></tbody>
-          </table>
+      <div style="margin-top:20px">
+        <div class="chart-title">💰 渠道收入占比</div>
+        <canvas id="channelPieChart" style="max-height:250px"></canvas>
+      </div>
+    </div>
+
+    <!-- ==================== 模块四：各房型经营数据 ==================== -->
+    <div class="section-card">
+      <div class="section-header">
+        <div class="section-title"><span class="icon">🛏️</span> 各房型经营数据</div>
+      </div>
+      <div class="roomtype-grid" id="roomtypeGrid">
+        <!-- 动态填充 -->
+      </div>
+      <div style="margin-top:20px">
+        <div class="chart-title">🏠 房型收入分布</div>
+        <canvas id="roomtypeChart" style="max-height:300px"></canvas>
+      </div>
+    </div>
+
+    <!-- ==================== 模块五：当月完整日报明细 ==================== -->
+    <div class="section-card">
+      <div class="section-header">
+        <div class="section-title"><span class="icon">📋</span> 当月完整日报明细</div>
+        <div>
+          <button class="tab-btn active" onclick="switchTab('daily')">日报明细</button>
+          <button class="tab-btn" onclick="switchTab('export')">导出数据</button>
         </div>
       </div>
 
-      <!-- Weekly comparison -->
-      <div style="margin-top:20px" id="weeklySection" style="display:none">
-        <div class="section-title" style="margin-bottom:12px"><span class="icon">📅</span> 周度对比</div>
-        <div style="overflow-x:auto">
-          <table class="channel-table" id="weeklyTable">
-            <thead><tr><th>周期</th><th>天数</th><th>总收入（元）</th><th>日均收入（元）</th><th>平均入住率</th></tr></thead>
-            <tbody></tbody>
-          </table>
-        </div>
-      </div>
-
-      <!-- Diagnosis -->
-      <div style="margin-top:20px" id="diagnosisSection" style="display:none">
-        <div class="section-title" style="margin-bottom:12px"><span class="icon">🔍</span> 经营诊断建议</div>
-        <div class="diagnosis" id="diagnosisList"></div>
-      </div>
-    </div>
-
-    <!-- Room Type Analysis -->
-    <div class="section-card" id="roomTypeSection" style="display:none">
-      <div class="section-header">
-        <div class="section-title"><span class="icon">🛏️</span> 房型经营分析</div>
-        <button class="staff-link" onclick="exportRoomTypes()" id="exportRoomBtn" title="导出房型Excel">
-          📥 导出房型Excel
-        </button>
-      </div>
-      <div class="loading-row" id="roomTypeLoading">
-        <div class="spinner"></div><span>加载房型数据…</span>
-      </div>
-      <div id="roomTypeContent" style="display:none">
-        <div style="overflow-x:auto">
-          <table class="channel-table" id="roomTypeTable">
+      <!-- 日报明细 Tab -->
+      <div id="dailyTab">
+        <div class="table-container">
+          <table class="daily-table" id="dailyTable">
             <thead>
               <tr>
-                <th>房型</th><th>总房间数</th><th>累计开房</th><th>开房率</th>
-                <th>日均开房</th><th>总收入</th><th>平均房价</th><th>经营评价</th>
+                <th>日期</th>
+                <th>总收入</th>
+                <th>开房数</th>
+                <th>入住率</th>
+                <th>均价</th>
+                <th>RevPGR</th>
+                <th>美团</th>
+                <th>携程</th>
+                <th>飞猪</th>
+                <th>抖音</th>
+                <th>微信</th>
+                <th>现金</th>
+                <th>支付宝</th>
               </tr>
             </thead>
-            <tbody></tbody>
+            <tbody id="dailyTableBody">
+              <!-- 动态填充 -->
+            </tbody>
           </table>
         </div>
-        <!-- 经营分析卡片 -->
-        <div class="diagnosis" id="roomTypeDiagnosis" style="margin-top:16px"></div>
       </div>
-    </div>
 
-    <!-- Daily report history -->
-    <div class="section-card">
-      <div class="section-header">
-        <div class="section-title"><span class="icon">📋</span> 日报记录</div>
-        <div style="display:flex;align-items:center;gap:10px">
-          <span id="reportCountLabel" style="font-size:12px;color:#999"></span>
-          <button class="staff-link" onclick="exportDaily()" id="exportDailyBtn" title="导出日报Excel">
-            📥 导出日报Excel
+      <!-- 导出 Tab -->
+      <div id="exportTab" style="display:none">
+        <div style="padding:20px">
+          <p style="margin-bottom:16px;color:#666">点击下方按钮导出Excel报表：</p>
+          <button class="staff-link" onclick="exportDaily()" style="padding:12px 24px;font-size:14px">
+            📊 导出日报Excel
+          </button>
+          <button class="staff-link" onclick="exportRoomTypes()" style="padding:12px 24px;font-size:14px">
+            🛏️ 导出房型Excel
           </button>
         </div>
       </div>
-      <div class="loading-row" id="reportLoading">
-        <div class="spinner"></div><span>加载日报记录…</span>
-      </div>
-      <div id="reportContent" style="display:none;overflow-x:auto">
-        <table class="report-table" id="reportTable">
-          <thead>
-            <tr>
-              <th>日期</th><th>班次</th><th>美团</th><th>携程</th><th>飞猪</th><th>抖音</th><th>微信</th><th>现金</th><th>支付宝</th><th>停车费</th><th>税费</th><th>总房</th><th>入住率</th><th>RevPGR</th><th>总收入</th>
-            </tr>
-          </thead>
-          <tbody></tbody>
-        </table>
-      </div>
     </div>
+
   </div>
 
-  <script src="app.js"></script>
   <script>
-    const user = requireRole('boss');
-    if (!user) {}
+    // ============ 配置 ============
+    const API_BASE = '';
+    const ROOM_TYPE_INVENTORY = {
+      "特惠大床房": 2, "精选大床房": 12, "豪华大床房": 17,
+      "城堡亲子房": 4, "麻将双床房": 7, "麻将套房": 2, "圆床房": 1
+    };
 
-    document.getElementById('userBadge').textContent =
-      user ? `👔 ${user.name || user.phone}` : '未登录';
+    // ============ 状态 ============
+    let currentData = null;
+    let roomsIncomeChart = null;
+    let occRevpgrChart = null;
+    let channelPieChart = null;
+    let roomtypeChart = null;
 
-    let incomeChart = null;
-    let occupancyChart = null;
-    let currentMonthlyData = null;
-    let currentYear = null, currentMonth = null;
+    // ============ 工具函数 ============
+    const Fmt = {
+      money: v => v != null ? '¥' + Number(v).toLocaleString('zh-CN', {minimumFractionDigits: 2, maximumFractionDigits: 2}) : '—',
+      rate: v => v != null ? Number(v).toFixed(1) + '%' : '—',
+      num: v => v != null ? Number(v).toLocaleString() : '—',
+      date: d => d ? d.substring(5) : '—'
+    };
 
-    // Init month selectors
-    const now = new Date();
-    const ySel = document.getElementById('yearSelect');
-    const mSel = document.getElementById('monthSelect');
-    for (let y = now.getFullYear(); y >= 2024; y--) {
-      const o = document.createElement('option');
-      o.value = y; o.textContent = y + '年';
-      if (y === now.getFullYear()) o.selected = true;
-      ySel.appendChild(o);
+    // ============ 认证 ============
+    function getToken() { return localStorage.getItem('token'); }
+    function getUser() {
+      try { return JSON.parse(localStorage.getItem('user') || '{}'); }
+      catch { return {}; }
     }
-    for (let m = 1; m <= 12; m++) {
-      const o = document.createElement('option');
-      o.value = m; o.textContent = m + '月';
-      if (m === now.getMonth() + 1) o.selected = true;
-      mSel.appendChild(o);
+    function logout() {
+      localStorage.clear();
+      location.href = 'index.html';
     }
-
-    // 统一刷新：月度图表 + 日报记录
-    async function applyMonthFilter() {
-      const year = ySel.value;
-      const month = mSel.value;
-      currentYear = year;
-      currentMonth = month;
-      document.getElementById('monthBarHint').textContent =
-        `当前显示：${year}年${parseInt(month)}月`;
-
-      // 并行加载
-      await Promise.all([
-        loadMonth(year, month),
-        loadReportHistory(year, month)
-      ]);
-    }
-
-    async function init() {
-      try {
-        // 先拿 stats 找最新月份
-        const stats = await API.getStats();
-        document.getElementById('kpiReports').textContent = stats.totalReports || 0;
-        document.getElementById('kpiIncome').textContent = Fmt.currency(stats.totalIncome);
-        document.getElementById('kpiAvgIncome').textContent = Fmt.currency(
-          stats.totalReports > 0 ? stats.totalIncome / stats.totalReports : 0
-        );
-        document.getElementById('kpiLatestDate').textContent = stats.latestDate || '暂无';
-
-        // 自动选最新有数据的月份
-        if (stats.latestDate) {
-          const latestYear  = stats.latestDate.slice(0, 4);
-          const latestMonth = parseInt(stats.latestDate.slice(5, 7));
-          ySel.value = latestYear;
-          mSel.value = latestMonth;
-          currentYear = latestYear;
-          currentMonth = latestMonth;
-          document.getElementById('monthBarHint').textContent =
-            `已自动定位到最新数据：${latestYear}年${latestMonth}月`;
-
-          // 拿最新日期的入住率 / RevPGR
-          const rsp = await API.getReports({ year: latestYear, month: String(latestMonth).padStart(2, '0') });
-          const latest = rsp.reports.find(r => r.date === stats.latestDate);
-          if (latest) {
-            document.getElementById('kpiOccupancy').textContent = Fmt.pct(latest.occupancy_rate) + '%';
-            document.getElementById('kpiRevpgr').textContent = '¥' + Fmt.currency(latest.revpgr);
-            document.getElementById('kpiOccupancyDate').textContent = Fmt.date(latest.date);
-          }
+    async function api(path, opts = {}) {
+      const res = await fetch(API_BASE + path, {
+        ...opts,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${getToken()}`,
+          ...opts.headers
         }
-
-        // 加载当前月的所有模块
-        await Promise.all([
-          loadMonth(ySel.value, mSel.value),
-          loadReportHistory(ySel.value, mSel.value)
-        ]);
-      } catch (e) {
-        console.error('init error:', e);
-      }
+      });
+      if (res.status === 401) { logout(); throw new Error('未登录'); }
+      return res.json();
     }
 
-    async function loadMonth(year, month) {
-      year  = year  || ySel.value;
-      month = month || mSel.value;
-      const el      = document.getElementById('channelLoading');
-      const content = document.getElementById('channelContent');
-      el.style.display = 'flex';
-      content.style.display = 'none';
+    // ============ 初始化 ============
+    async function init() {
+      const user = getUser();
+      if (!user.phone) { location.href = 'index.html'; return; }
+      document.getElementById('userBadge').textContent = `${user.name || user.phone} (${user.role})`;
+
+      // 初始化月份选择器
+      const now = new Date();
+      const yearSel = document.getElementById('yearSelect');
+      const monthSel = document.getElementById('monthSelect');
+      for (let y = now.getFullYear(); y >= 2024; y--) {
+        yearSel.options.add(new Option(y + '年', y));
+      }
+      for (let m = 1; m <= 12; m++) {
+        monthSel.options.add(new Option(m + '月', m));
+      }
+      yearSel.value = 2026;
+      monthSel.value = 5;
+
+      await loadData();
+    }
+
+    // ============ 加载数据 ============
+    async function loadData() {
+      const year = document.getElementById('yearSelect').value;
+      const month = document.getElementById('monthSelect').value;
 
       try {
-        const data = await API.getMonthly(year, month);
-        currentMonthlyData = data;
-        renderMonthly(data);
+        currentData = await api(`/api/reports/monthly?year=${year}&month=${month}`);
+        renderAll();
       } catch (e) {
-        console.error(e);
-        el.innerHTML = '<span style="color:#c00;font-size:13px">加载失败：' + e.message + '</span>';
+        alert('加载失败: ' + e.message);
       }
     }
 
-    function renderMonthly(data) {
-      const el = document.getElementById('channelLoading');
-      const content = document.getElementById('channelContent');
-      el.style.display = 'none';
-      content.style.display = 'block';
-
-      if (!data.summary) {
-        content.innerHTML = '<div class="empty-state"><div class="icon">📭</div><p>该月暂无数据</p></div>';
+    // ============ 渲染所有模块 ============
+    function renderAll() {
+      if (!currentData || !currentData.reports || currentData.reports.length === 0) {
+        showEmpty();
         return;
       }
 
-      const s = data.summary;
-
-      // Update KPIs for selected month
-      document.getElementById('kpiReports').textContent = data.reportCount;
-      document.getElementById('kpiIncome').textContent = Fmt.currency(s.totalIncome);
-      document.getElementById('kpiAvgIncome').textContent = Fmt.currency(s.avgIncome);
-
-      // Render channel table
-      const channels = [
-        ['美团', s.channelData.meituan],
-        ['携程', s.channelData.ctrip],
-        ['飞猪', s.channelData.fliggy],
-        ['抖音', s.channelData.douyin],
-        ['微信', s.channelData.wechat],
-        ['现金', s.channelData.cash],
-        ['支付宝', s.channelData.alipay]
-      ];
-      const totalRooms = channels.reduce((sum, [,c]) => sum + c.rooms, 0);
-      const totalChanIncome = channels.reduce((sum, [,c]) => sum + c.income, 0);
-
-      const tbody = document.querySelector('#channelTable tbody');
-      tbody.innerHTML = channels.map(([name, c]) => {
-        const roomPct = totalRooms > 0 ? (c.rooms/totalRooms*100).toFixed(1) : '0.0';
-        const incomePct = totalChanIncome > 0 ? (c.income/totalChanIncome*100).toFixed(1) : '0.0';
-        const unitPrice = c.rooms > 0 ? (c.income/c.rooms).toFixed(1) : '0';
-        return `<tr>
-          <td><strong>${name}</strong></td>
-          <td class="num">${c.rooms}间</td>
-          <td style="color:#888">${roomPct}%</td>
-          <td class="money">¥${Fmt.currency(c.income)}</td>
-          <td style="color:#888">${incomePct}%</td>
-          <td>¥${unitPrice}</td>
-        </tr>`;
-      }).join('');
-
-      // Render weekly
-      const wSection = document.getElementById('weeklySection');
-      if (s.weeklyData && s.weeklyData.length > 0) {
-        wSection.style.display = 'block';
-        const wtbody = document.querySelector('#weeklyTable tbody');
-        wtbody.innerHTML = s.weeklyData.map(w => `
-          <tr>
-            <td><strong>${w.week}</strong></td>
-            <td>${w.count}天</td>
-            <td class="money">¥${Fmt.currency(w.income)}</td>
-            <td class="num">¥${Fmt.currency(w.income / w.count)}</td>
-            <td style="color:${w.occupancy >= 70 ? '#2e7d32' : '#e65100'}">${Fmt.pct(w.occupancy)}%</td>
-          </tr>
-        `).join('');
-      } else {
-        wSection.style.display = 'none';
-      }
-
-      // Diagnosis
-      renderDiagnosis(s, data.reportCount);
-
-      // Charts
-      renderCharts(s.dailyTrend);
-
-      // Room type analysis
-      const rtSection = document.getElementById('roomTypeSection');
-      if (data.reports && data.reports.length > 0) {
-        rtSection.style.display = 'block';
-        renderRoomTypeAnalysis(data.reports);
-      } else {
-        rtSection.style.display = 'none';
-      }
+      renderKPIs();
+      renderCharts();
+      renderChannels();
+      renderRoomTypes();
+      renderDailyTable();
     }
 
-    function renderDiagnosis(s, days) {
-      const section = document.getElementById('diagnosisSection');
-      const list = document.getElementById('diagnosisList');
-      const items = [];
-
-      // Find best/worst channel
-      const channels = [
-        ['美团', s.channelData.meituan],
-        ['携程', s.channelData.ctrip],
-        ['飞猪', s.channelData.fliggy],
-        ['抖音', s.channelData.douyin],
-        ['微信', s.channelData.wechat],
-        ['现金', s.channelData.cash],
-        ['支付宝', s.channelData.alipay]
-      ];
-      const bestChan = channels.reduce((a, b) => b[1].rooms > a[1].rooms ? b : a);
-      const zeroChan = channels.filter(c => c[1].rooms === 0).map(c => c[0]);
-
-      items.push({
-        icon: '🏆', type: 'good',
-        text: `<strong>最强渠道：${bestChan[0]}</strong>，共 ${bestChan[1].rooms} 间夜，收入 ¥${Fmt.currency(bestChan[1].income)}，建议持续维护关系，争取更多流量支持。`
-      });
-
-      if (s.avgOccupancy >= 75) {
-        items.push({ icon: '📈', type: 'good', text: `<strong>入住率表现良好</strong>，月均 ${Fmt.pct(s.avgOccupancy)}%，超过行业平均水平。可适当提升溢价空间，优化收益。` });
-      } else if (s.avgOccupancy >= 60) {
-        items.push({ icon: '⚠️', type: 'warn', text: `<strong>入住率有提升空间</strong>，当前月均 ${Fmt.pct(s.avgOccupancy)}%。建议关注OTA平台排名优化，或适度调整价格策略。` });
-      } else {
-        items.push({ icon: '🚨', type: 'bad', text: `<strong>入住率偏低</strong>，月均仅 ${Fmt.pct(s.avgOccupancy)}%。需重点关注获客渠道，建议检查平台展示、评论管理及价格竞争力。` });
-      }
-
-      if (zeroChan.length > 0 && zeroChan.length < 5) {
-        items.push({ icon: '💡', type: 'warn', text: `<strong>空白渠道：${zeroChan.join('、')}</strong>本月无订单，建议与相关平台BD对接，或检查后台配置是否正常。` });
-      }
-
-      if (s.avgRevpgr >= 120) {
-        items.push({ icon: '💰', type: 'good', text: `<strong>RevPGR 表现优秀</strong>：¥${Fmt.currency(s.avgRevpgr)}，说明房价与入住率匹配较好，收益管理到位。` });
-      } else if (s.avgRevpgr < 80) {
-        items.push({ icon: '📉', type: 'bad', text: `<strong>RevPGR 偏低</strong>：¥${Fmt.currency(s.avgRevpgr)}，建议分析各渠道单价，优化价格梯度设置，提升收益潜力。` });
-      }
-
-      if (s.totalTax > 0) {
-        items.push({ icon: '📋', type: 'info', text: `<strong>税费支出：¥${Fmt.currency(s.totalTax)}</strong>，建议关注税收优惠政策，合理节税。` });
-      }
-
-      if (days >= 28) {
-        items.push({ icon: '✅', type: 'good', text: `<strong>数据完整度：${days}天</strong>，本月日报上报完整，继续保持！` });
-      } else if (days >= 15) {
-        items.push({ icon: '⚡', type: 'warn', text: `<strong>数据完整度：${days}天</strong>，本月还有 ${30 - days} 天数据待补录，请提醒员工及时上传。` });
-      }
-
-      list.innerHTML = items.map(item => `
-        <div class="diagnosis-item">
-          <span class="diagnosis-icon">${item.icon}</span>
-          <span class="diagnosis-text">${item.text}</span>
-        </div>
-      `).join('');
-      section.style.display = 'block';
+    function showEmpty() {
+      document.getElementById('kpiGrid').innerHTML = `
+        <div class="empty-state" style="grid-column:1/-1">
+          <div class="icon">📭</div>
+          <p>暂无数据</p>
+        </div>`;
     }
 
-    function renderCharts(dailyTrend) {
-      if (!dailyTrend || dailyTrend.length === 0) return;
+    // ============ 模块一：KPI ============
+    function renderKPIs() {
+      const s = currentData.summary;
+      const reports = currentData.reports;
 
-      const labels = dailyTrend.map(d => Fmt.shortDate(d.date));
-      const incomeData = dailyTrend.map(d => d.income);
-      const occData = dailyTrend.map(d => d.occupancy);
+      document.getElementById('kpiReports').textContent = currentData.reportCount || 0;
+      document.getElementById('kpiIncome').textContent = Fmt.money(s.totalIncome).replace('¥', '');
+      document.getElementById('kpiAvgIncome').textContent = Fmt.money(s.avgIncome).replace('¥', '');
+      document.getElementById('kpiOccupancy').textContent = Fmt.rate(s.avgOccupancy);
+      document.getElementById('kpiAvgPrice').textContent = '¥' + (s.avgRevpgr || 0).toFixed(1);
+      document.getElementById('kpiTotalRooms').textContent = Fmt.num(s.totalRooms || 0);
+      document.getElementById('reportCountBadge').textContent = (currentData.reportCount || 0) + ' 天';
+    }
 
-      const chartOpts = {
-        responsive: true, maintainAspectRatio: true,
-        plugins: { legend: { display: false } },
-        scales: {
-          x: { grid: { display: false }, ticks: { font: { size: 11 }, maxRotation: 45 } },
-          y: { grid: { color: '#f0f0f0' }, ticks: { font: { size: 11 } } }
-        }
-      };
+    // ============ 模块二：趋势图表 ============
+    function renderCharts() {
+      const reports = currentData.reports;
+      const labels = reports.map(r => r.date.substring(5));
+      const incomes = reports.map(r => r.total_income || 0);
+      const rooms = reports.map(r => r.total_rooms || 0);
+      const occ = reports.map(r => r.occupancy_rate || 0);
+      const revpgr = reports.map(r => r.revpgr || 0);
 
-      // Destroy old charts
-      if (incomeChart) incomeChart.destroy();
-      if (occupancyChart) occupancyChart.destroy();
-
-      const incCtx = document.getElementById('incomeChart').getContext('2d');
-      incomeChart = new Chart(incCtx, {
+      // 柱状图：开房数 + 营业额
+      if (roomsIncomeChart) roomsIncomeChart.destroy();
+      const ctx1 = document.getElementById('roomsIncomeChart').getContext('2d');
+      roomsIncomeChart = new Chart(ctx1, {
         type: 'bar',
         data: {
           labels,
-          datasets: [{
-            data: incomeData,
-            backgroundColor: dailyTrend.map((_, i) => i % 2 === 0 ? 'rgba(233,69,96,0.7)' : 'rgba(233,69,96,0.4)'),
-            borderRadius: 4, borderSkipped: false
-          }]
+          datasets: [
+            {
+              label: '营业额(元)',
+              data: incomes,
+              backgroundColor: 'rgba(233,69,96,0.8)',
+              borderRadius: 6,
+              yAxisID: 'y'
+            },
+            {
+              label: '开房数(间)',
+              data: rooms,
+              type: 'line',
+              borderColor: '#0f3460',
+              backgroundColor: 'rgba(15,52,96,0.1)',
+              tension: 0.4,
+              fill: true,
+              yAxisID: 'y1'
+            }
+          ]
         },
-        options: { ...chartOpts, plugins: { ...chartOpts.plugins, tooltip: { callbacks: { label: ctx => `¥${Fmt.currency(ctx.raw)}` } } } }
+        options: {
+          responsive: true,
+          interaction: { mode: 'index', intersect: false },
+          plugins: {
+            legend: { position: 'top' },
+            tooltip: {
+              callbacks: {
+                label: ctx => `${ctx.dataset.label}: ${ctx.dataset.label.includes('营业额') ? Fmt.money(ctx.raw) : ctx.raw + '间'}`
+              }
+            }
+          },
+          scales: {
+            y: { type: 'linear', position: 'left', title: { display: true, text: '营业额(元)' }, grid: { color: '#f0f0f0' } },
+            y1: { type: 'linear', position: 'right', title: { display: true, text: '开房数(间)' }, grid: { drawOnChartArea: false } }
+          }
+        }
       });
 
-      const occCtx = document.getElementById('occupancyChart').getContext('2d');
-      occupancyChart = new Chart(occCtx, {
+      // 折线图：入住率 + RevPGR
+      if (occRevpgrChart) occRevpgrChart.destroy();
+      const ctx2 = document.getElementById('occRevpgrChart').getContext('2d');
+      occRevpgrChart = new Chart(ctx2, {
         type: 'line',
         data: {
           labels,
-          datasets: [{
-            data: occData,
-            borderColor: '#0f3460', backgroundColor: 'rgba(15,52,96,0.08)',
-            fill: true, tension: 0.4, pointRadius: 3, pointBackgroundColor: '#0f3460',
-            borderWidth: 2
-          }]
-        },
-        options: { ...chartOpts, scales: { ...chartOpts.scales, y: { ...chartOpts.scales.y, max: 100 } }, plugins: { ...chartOpts.plugins, tooltip: { callbacks: { label: ctx => `${ctx.raw}%` } } } }
-      });
-    }
-
-    async function loadReportHistory(year, month) {
-      const rLoading = document.getElementById('reportLoading');
-      const rContent = document.getElementById('reportContent');
-      rLoading.style.display = 'flex';
-      rContent.style.display = 'none';
-
-      try {
-        const params = {};
-        if (year)  params.year  = year;
-        if (month) params.month = String(month).padStart(2, '0');
-        const data = await API.getReports(params);
-        rLoading.style.display = 'none';
-        rContent.style.display = 'block';
-        const label = year
-          ? `${year}年${parseInt(month)}月，共 ${data.reports.length} 条`
-          : `全部共 ${data.reports.length} 条`;
-        document.getElementById('reportCountLabel').textContent = label;
-
-        const tbody = document.querySelector('#reportTable tbody');
-        tbody.innerHTML = data.reports.map(r => `
-          <tr>
-            <td>${Fmt.shortDate(r.date)}</td>
-            <td style="color:#888">${r.shift || '—'}</td>
-            <td>${r.meituan_rooms || '-'}</td>
-            <td>${r.ctrip_rooms || '-'}</td>
-            <td>${r.fliggy_rooms || '-'}</td>
-            <td>${r.douyin_rooms || '-'}</td>
-            <td>${r.wechat_rooms || '-'}</td>
-            <td>${r.cash_rooms || '-'}</td>
-            <td>${r.alipay_rooms || '-'}</td>
-            <td>¥${Fmt.currency(r.parking_income || 0)}</td>
-            <td>¥${Fmt.currency(r.tax || 0)}</td>
-            <td>${r.total_rooms || '-'}</td>
-            <td style="color:${r.occupancy_rate >= 70 ? '#2e7d32' : '#e65100'}">${Fmt.pct(r.occupancy_rate)}%</td>
-            <td style="color:#0f3460;font-weight:700">¥${Fmt.currency(r.revpgr)}</td>
-            <td style="color:#e94560;font-weight:700">¥${Fmt.currency(r.total_income)}</td>
-          </tr>
-        `).join('');
-      } catch (e) {
-        rLoading.innerHTML = `<span style="color:#c00;font-size:13px">加载失败：${e.message}</span>`;
-      }
-    }
-
-    function logout() {
-      Auth.clear();
-      go('index');
-    }
-
-    // ─── Room Type Analysis ──────────────────────────────────────────────────
-    const ROOM_TYPE_INVENTORY = {
-      '特惠大床房':  2,
-      '精选大床房':  12,
-      '豪华大床房':  17,
-      '城堡亲子房':  4,
-      '麻将双床房':  7,
-      '麻将套房':    2,
-      '圆床房':      1,
-    };
-    const ROOM_TYPE_KEYS = Object.keys(ROOM_TYPE_INVENTORY);
-
-    function renderRoomTypeAnalysis(reports) {
-      const el = document.getElementById('roomTypeLoading');
-      const content = document.getElementById('roomTypeContent');
-      el.style.display = 'none';
-      content.style.display = 'block';
-
-      if (!reports || reports.length === 0) {
-        document.getElementById('roomTypeTable').parentElement.innerHTML =
-          '<div class="empty-state"><div class="icon">🛏️</div><p>该月暂无数据</p></div>';
-        return;
-      }
-
-      // 过滤出有房型数据的日报（room_types 非空）
-      const reportsWithRoomData = reports.filter(r => {
-        const rt = r.room_types;
-        return rt && Object.keys(rt).length > 0;
-      });
-
-      const validDays = reportsWithRoomData.length;
-      const totalDays = reports.length;
-      const noDataDays = totalDays - validDays;
-
-      // 获取无房型数据的日期列表
-      const noDataDates = reports
-        .filter(r => {
-          const rt = r.room_types;
-          return !rt || Object.keys(rt).length === 0;
-        })
-        .map(r => r.date)
-        .sort();
-      const noDataDatesStr = noDataDates.length > 0
-        ? `（日报1-${noDataDates[0].slice(-2)}日无房型数据）`
-        : '';
-      // 数据截至日期
-      const latestDate = reports.length > 0
-        ? reports.map(r => r.date).sort().pop()
-        : '';
-      const dataDateStr = latestDate ? `数据截至${latestDate}，` : '';
-
-      // 按房型统计
-      const totals = {};
-      for (const name of ROOM_TYPE_KEYS) totals[name] = { rooms: 0, income: 0, days: 0 };
-
-      for (const r of reportsWithRoomData) {
-        const rt = r.room_types || {};
-        for (const name of ROOM_TYPE_KEYS) {
-          if (rt[name]) {
-            totals[name].rooms  += parseInt(rt[name].rooms  || 0);
-            totals[name].income += parseFloat(rt[name].income || 0);
-            if (parseInt(rt[name].rooms || 0) > 0) {
-              totals[name].days += 1; // 记录该房型有开房的天数
+          datasets: [
+            {
+              label: '入住率(%)',
+              data: occ,
+              borderColor: '#2e7d32',
+              backgroundColor: 'rgba(46,125,50,0.1)',
+              tension: 0.4,
+              fill: true
+            },
+            {
+              label: 'RevPGR(元)',
+              data: revpgr,
+              borderColor: '#e65100',
+              backgroundColor: 'rgba(230,81,0,0.1)',
+              tension: 0.4,
+              fill: true
             }
+          ]
+        },
+        options: {
+          responsive: true,
+          interaction: { mode: 'index', intersect: false },
+          plugins: { legend: { position: 'top' } },
+          scales: {
+            y: { title: { display: true, text: '百分比/金额' }, grid: { color: '#f0f0f0' } }
           }
         }
-      }
+      });
+    }
 
-      const tbody = document.querySelector('#roomTypeTable tbody');
-      const rows = [];
-      for (const name of ROOM_TYPE_KEYS) {
-        const inv = ROOM_TYPE_INVENTORY[name];
-        const t = totals[name];
-        const occ = t.rooms;
-        const inc = t.income;
-        const rtDays = t.days; // 该房型有开房的天数
+    // ============ 模块三：渠道数据 ============
+    function renderChannels() {
+      const ch = currentData.summary.channelData || {};
+      const totalIncome = currentData.summary.totalIncome || 1;
 
-        // 开房率计算：所有房型统一使用有房型数据的总天数作为分母
-        const occRate = validDays > 0 ? (occ / (inv * validDays) * 100).toFixed(1) : '0.0';
-        const avgP = occ > 0 ? (inc / occ).toFixed(1) : '0';
-        // 日均开房：所有房型统一使用有房型数据的总天数作为分母
-        const avgPerDay = validDays > 0 ? (occ / validDays).toFixed(1) : '0';
-
-        let rating, rcolor;
-        if (occ === 0) {
-          rating = '无数据'; rcolor = '#e65100';
-        } else if (parseFloat(occRate) >= 80) {
-          rating = '优秀'; rcolor = '#2e7d32';
-        } else if (parseFloat(occRate) >= 50) {
-          rating = '良好'; rcolor = '#1565C0';
-        } else {
-          rating = '待提升'; rcolor = '#e65100';
-        }
-        rows.push({ name, inv, occ, occRate, avgP, avgPerDay, inc, rating, rcolor, rtDays });
-      }
-
-      tbody.innerHTML = rows.map(r => `
-        <tr>
-          <td><strong style="color:#0f3460">${r.name}</strong></td>
-          <td class="num">${r.inv}间</td>
-          <td class="num">${r.occ}间夜</td>
-          <td style="color:${parseFloat(r.occRate) >= 50 ? '#2e7d32' : '#e65100'};font-weight:700">${r.occRate}%</td>
-          <td>${r.avgPerDay}间/天 <span style="color:#888;font-size:11px">(${validDays}天)</span></td>
-          <td class="money">¥${Fmt.currency(r.inc)}</td>
-          <td>¥${r.avgP}</td>
-          <td style="color:${r.rcolor};font-weight:700">${r.rating}</td>
-        </tr>
-      `).join('');
-
-      // 经营分析
-      const totalInv = Object.values(ROOM_TYPE_INVENTORY).reduce((a, b) => a + b, 0);
-      const totalOcc = Object.values(totals).reduce((a, b) => a + b.rooms, 0);
-      const totalInc = Object.values(totals).reduce((a, b) => a + b.income, 0);
-      const bestInc  = rows.reduce((a, b) => b.inc > a.inc ? b : a, rows[0] || {});
-      const bestRate = rows.reduce((a, b) => parseFloat(b.occRate) > parseFloat(a.occRate) ? b : a, rows[0] || {});
-      const worst = rows.filter(r => r.occ > 0).reduce((a, b) => parseFloat(b.occRate) < parseFloat(a.occRate) ? b : a, null);
-      const zeroRoomTypes = rows.filter(r => r.occ === 0).map(r => r.name);
-      const lowRateRoomTypes = rows.filter(r => r.occ > 0 && parseFloat(r.occRate) < 30).map(r => r.name);
-
-      const period = currentYear ? `${currentYear}年${parseInt(currentMonth)}月` : '全部时间';
-
-      // 生成经营建议
-      const suggestions = [];
-
-      if (bestInc.name) {
-        suggestions.push({ icon: '🏆', type: 'good',
-          text: `<strong>收入冠军：${bestInc.name}</strong>，总收入 ¥${Fmt.currency(bestInc.inc)}，累计 ${bestInc.occ} 间夜，均价 ¥${bestInc.avgP}。该房型表现优异，建议重点维护。` });
-      }
-
-      if (bestRate.name && bestRate.occ > 0) {
-        suggestions.push({ icon: '📈', type: 'good',
-          text: `<strong>开房率冠军：${bestRate.name}</strong>，开房率 ${bestRate.occRate}%，累计 ${bestRate.occ} 间夜。${bestRate.occRate >= 80 ? '接近满房，可考虑适当提价。' : '表现良好，可作为定价参考。'}` });
-      }
-
-      if (worst && worst.name) {
-        suggestions.push({ icon: '⚠️', type: 'warn',
-          text: `<strong>待提升房型：${worst.name}</strong>，开房率仅 ${worst.occRate}%。建议：①检查该房型定价是否偏高；②优化线上展示图片和描述；③考虑是否改为长租或协议价。` });
-      }
-
-      if (zeroRoomTypes.length > 0) {
-        suggestions.push({ icon: '🚨', type: 'bad',
-          text: `<strong>空白房型：${zeroRoomTypes.join('、')}</strong>本月无订单。建议：①检查是否在OTA平台上架；②考虑合并至其他房型或调整房型配置；③如为主力房型，需重点排查原因。` });
-      }
-
-      if (lowRateRoomTypes.length > 0) {
-        suggestions.push({ icon: '💡', type: 'info',
-          text: `<strong>低入住率房型：${lowRateRoomTypes.join('、')}</strong>入住率低于30%。建议分析竞争对手同类房型定价，适当调低价格或增加套餐附加值（如含早、含门票等）。` });
-      }
-
-      if (totalOcc > 0 && totalDays > 0) {
-        const overallRate = (totalOcc / (totalInv * validDays) * 100).toFixed(1);
-        suggestions.push({ icon: '📊', type: 'info',
-          text: `<strong>整体评估：</strong>${period}，月均开房率 ${overallRate}%，房型总收入 ¥${Fmt.currency(totalInc)}，综合均价 ¥${(totalOcc > 0 ? (totalInc/totalOcc).toFixed(1) : '0')}。` });
-      }
-
-      const diagnosisHTML = [
-        { icon: '📋', text: `<strong>数据说明：</strong>${dataDateStr}${period}，月报共 ${totalDays} 天，其中 <strong>${validDays} 天</strong> 有房型明细数据参与统计${noDataDays > 0 ? `（${noDataDays}天无房型数据，已排除）${noDataDatesStr}` : ''}。` },
-        ...suggestions
+      const channels = [
+        { key: 'meituan', name: '美团', icon: '📱' },
+        { key: 'ctrip', name: '携程', icon: '✈️' },
+        { key: 'fliggy', name: '飞猪', icon: '🐷' },
+        { key: 'douyin', name: '抖音', icon: '🎵' },
+        { key: 'wechat', name: '微信', icon: '💬' },
+        { key: 'cash', name: '现金', icon: '💵' },
+        { key: 'alipay', name: '支付宝', icon: '💳' }
       ];
 
-      document.getElementById('roomTypeDiagnosis').innerHTML = diagnosisHTML.map(d => `
-        <div class="diagnosis-item">
-          <span class="diagnosis-icon">${d.icon}</span>
-          <span class="diagnosis-text">${d.text}</span>
-        </div>
-      `).join('');
+      let html = '';
+      channels.forEach(c => {
+        const d = ch[c.key] || { rooms: 0, income: 0 };
+        const pct = ((d.income / totalIncome) * 100).toFixed(1);
+        html += `
+          <div class="channel-item">
+            <div class="channel-icon">${c.icon}</div>
+            <div class="channel-info">
+              <div class="channel-name">${c.name}</div>
+              <div class="channel-value">${Fmt.num(d.rooms)}间 / ${Fmt.money(d.income)}</div>
+              <div class="channel-sub">占比 ${pct}%</div>
+            </div>
+          </div>`;
+      });
+      document.getElementById('channelGrid').innerHTML = html;
+
+      // 饼图
+      if (channelPieChart) channelPieChart.destroy();
+      const ctx = document.getElementById('channelPieChart').getContext('2d');
+      channelPieChart = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+          labels: channels.map(c => c.name),
+          datasets: [{
+            data: channels.map(c => ch[c.key]?.income || 0),
+            backgroundColor: ['#e94560','#0f3460','#ff9800','#4caf50','#2196f3','#9c27b0','#00bcd4']
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: { position: 'right' },
+            tooltip: { callbacks: { label: ctx => `${ctx.label}: ${Fmt.money(ctx.raw)}` } }
+          }
+        }
+      });
     }
 
-    // ─── Export Functions ─────────────────────────────────────────────────────
-    function exportDaily() {
+    // ============ 模块四：房型数据 ============
+    function renderRoomTypes() {
+      // 聚合所有房型数据
+      const rtData = {};
+      currentData.reports.forEach(r => {
+        const rts = r.room_types || {};
+        Object.keys(ROOM_TYPE_INVENTORY).forEach(rt => {
+          if (!rtData[rt]) rtData[rt] = { rooms: 0, income: 0 };
+          const d = rts[rt] || {};
+          rtData[rt].rooms += d.rooms || 0;
+          rtData[rt].income += d.income || 0;
+        });
+      });
+
+      let html = '';
+      const rtNames = Object.keys(ROOM_TYPE_INVENTORY);
+      rtNames.forEach(rt => {
+        const d = rtData[rt] || { rooms: 0, income: 0 };
+        const avgPrice = d.rooms > 0 ? (d.income / d.rooms).toFixed(2) : 0;
+        html += `
+          <div class="roomtype-item">
+            <div class="roomtype-name">${rt} (${ROOM_TYPE_INVENTORY[rt]}间)</div>
+            <div class="roomtype-row"><span class="roomtype-label">开房数</span><span class="roomtype-value">${d.rooms}间</span></div>
+            <div class="roomtype-row"><span class="roomtype-label">收入</span><span class="roomtype-value" style="color:#e94560">${Fmt.money(d.income)}</span></div>
+            <div class="roomtype-row"><span class="roomtype-label">均价</span><span class="roomtype-value">¥${avgPrice}</span></div>
+          </div>`;
+      });
+      document.getElementById('roomtypeGrid').innerHTML = html;
+
+      // 房型收入图
+      if (roomtypeChart) roomtypeChart.destroy();
+      const ctx = document.getElementById('roomtypeChart').getContext('2d');
+      roomtypeChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: rtNames,
+          datasets: [{
+            label: '房型收入(元)',
+            data: rtNames.map(rt => rtData[rt]?.income || 0),
+            backgroundColor: ['#e94560','#0f3460','#ff9800','#4caf50','#2196f3','#9c27b0','#00bcd4']
+          }]
+        },
+        options: {
+          responsive: true,
+          indexAxis: 'y',
+          plugins: {
+            legend: { display: false },
+            tooltip: { callbacks: { label: ctx => Fmt.money(ctx.raw) } }
+          },
+          scales: { x: { grid: { color: '#f0f0f0' } } }
+        }
+      });
+    }
+
+    // ============ 模块五：日报明细 ============
+    function renderDailyTable() {
+      const tbody = document.getElementById('dailyTableBody');
+      let html = '';
+      currentData.reports.forEach(r => {
+        html += `
+          <tr>
+            <td>${r.date}</td>
+            <td class="money">${Fmt.money(r.total_income)}</td>
+            <td class="num">${r.total_rooms || 0}</td>
+            <td><span class="badge ${r.occupancy_rate >= 80 ? 'badge-green' : r.occupancy_rate >= 50 ? 'badge-orange' : 'badge-red'}">${Fmt.rate(r.occupancy_rate)}</span></td>
+            <td>¥${(r.avg_price || 0).toFixed(1)}</td>
+            <td class="num">¥${(r.revpgr || 0).toFixed(1)}</td>
+            <td>${r.meituan_rooms || 0}</td>
+            <td>${r.ctrip_rooms || 0}</td>
+            <td>${r.fliggy_rooms || 0}</td>
+            <td>${r.douyin_rooms || 0}</td>
+            <td>${r.wechat_rooms || 0}</td>
+            <td>${r.cash_rooms || 0}</td>
+            <td>${r.alipay_rooms || 0}</td>
+          </tr>`;
+      });
+      tbody.innerHTML = html;
+    }
+
+    // ============ Tab切换 ============
+    function switchTab(tab) {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      event.target.classList.add('active');
+      document.getElementById('dailyTab').style.display = tab === 'daily' ? 'block' : 'none';
+      document.getElementById('exportTab').style.display = tab === 'export' ? 'block' : 'none';
+    }
+
+    // ============ 导出功能 ============
+    async function exportDaily() {
       const year = document.getElementById('yearSelect').value;
       const month = document.getElementById('monthSelect').value;
-      const token = Auth.getToken();
-      let url = API.BASE + '/api/reports/export/daily';
-      if (year) url += `?year=${year}&month=${month}`;
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = '';
-      a.headers = { 'Authorization': 'Bearer ' + token };
-      fetch(url, { headers: { 'Authorization': 'Bearer ' + token } })
-        .then(r => r.blob())
-        .then(b => {
-          const blobUrl = URL.createObjectURL(b);
-          a.href = blobUrl;
-          const fname = `日报明细_${year || '全部'}_${month || ''}`.replace(/^_|_$/g, '') + '.xlsx';
-          a.download = fname;
-          document.body.appendChild(a);
-          a.click();
-          document.body.removeChild(a);
-          URL.revokeObjectURL(blobUrl);
-        })
-        .catch(e => alert('导出失败：' + e.message));
+      window.open(`${API_BASE}/api/reports/export/daily?year=${year}&month=${month}`, '_blank');
     }
-
-    function exportRoomTypes() {
+    async function exportRoomTypes() {
       const year = document.getElementById('yearSelect').value;
       const month = document.getElementById('monthSelect').value;
-      const token = Auth.getToken();
-      let url = API.BASE + '/api/reports/export/roomtypes';
-      if (year) url += `?year=${year}&month=${month}`;
-      fetch(url, { headers: { 'Authorization': 'Bearer ' + token } })
-        .then(r => r.blob())
-        .then(b => {
-          const blobUrl = URL.createObjectURL(b);
-          const a = document.createElement('a');
-          a.href = blobUrl;
-          const fname = `房型汇总_${year || '全部'}_${month || ''}`.replace(/^_|_$/g, '') + '.xlsx';
-          a.download = fname;
-          document.body.appendChild(a);
-          a.click();
-          document.body.removeChild(a);
-          URL.revokeObjectURL(blobUrl);
-        })
-        .catch(e => alert('导出失败：' + e.message));
+      window.open(`${API_BASE}/api/reports/export/roomtypes?year=${year}&month=${month}`, '_blank');
     }
 
+    // ============ 启动 ============
     init();
   </script>
 </body>
