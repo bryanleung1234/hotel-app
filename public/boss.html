@@ -396,9 +396,9 @@
     };
 
     // ============ 认证 ============
-    function getToken() { return localStorage.getItem('token'); }
+    function getToken() { return localStorage.getItem('hotel_token'); }
     function getUser() {
-      try { return JSON.parse(localStorage.getItem('user') || '{}'); }
+      try { return JSON.parse(localStorage.getItem('hotel_user') || '{}'); }
       catch { return {}; }
     }
     function logout() {
