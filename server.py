@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+﻿# -*- coding: utf-8 -*-
 import sys, io
 sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
 sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8')
@@ -54,6 +54,12 @@ def close_db(e=None):
             db.close()
         except Exception:
             pass
+
+@app.errorhandler(500)
+def handle_500(e):
+    import traceback
+    tb = traceback.format_exc()
+    return jsonify({'error': str(e), 'traceback': tb}), 500
 
 def db_execute(db, sql, params=()):
     """统一执行 SQL，自动处理 SQLite/PostgreSQL 占位符差异"""
@@ -537,10 +543,9 @@ def api_monthly():
 
     # Build from daily reports
     if USE_POSTGRES:
-        cur = db.cursor()
+        cur = db.cursor(cursor_factory=psycopg2.extras.DictCursor)
         cur.execute("SELECT * FROM daily_reports WHERE date LIKE %s ORDER BY date ASC", (padded + '%',))
-        col_names = [d[0] for d in cur.description]
-        rows = [dict(zip(col_names, row)) for row in cur.fetchall()]
+        rows = [dict(row) for row in cur.fetchall()]
     else:
         rows = db_execute(db,
             "SELECT * FROM daily_reports WHERE date LIKE ? ORDER BY date ASC", (padded + '%',)
@@ -613,9 +618,7 @@ def api_monthly():
     if USE_POSTGRES:
         cur = db.cursor()
         cur.execute(
-            '''INSERT INTO monthly_cache (year, month, data, updated_at)
-               VALUES (%s, %s, %s, CURRENT_TIMESTAMP)
-               ON CONFLICT (year, month) DO UPDATE SET data=EXCLUDED.data, updated_at=EXCLUDED.updated_at''',
+            "INSERT INTO monthly_cache (year, month, data, updated_at) VALUES (%s, %s, %s, CURRENT_TIMESTAMP) ON CONFLICT (year, month) DO UPDATE SET data=EXCLUDED.data, updated_at=EXCLUDED.updated_at",
             (year, month, cache_json)
         )
     else:
@@ -1531,3 +1534,4 @@ if __name__ == '__main__':
     print('[BOSS]  Login: 13802531098 / 18602032126')
     print('[CLEAR] 清空数据: GET /api/clear （危险操作，已清空 daily_reports 和 monthly_cache）')
     app.run(host='0.0.0.0', port=port, debug=False)
+
