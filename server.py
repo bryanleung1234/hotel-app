@@ -516,9 +516,15 @@ def api_monthly():
     db = get_db()
 
     # Check cache
-    cached = db_execute(db,
-        'SELECT data FROM monthly_cache WHERE year = ? AND month = ?', (year, month)
-    ).fetchone()
+    if USE_POSTGRES:
+        cur = db.cursor()
+        cur.execute('SELECT data FROM monthly_cache WHERE year = %s AND month = %s', (year, month))
+        cached_row = cur.fetchone()
+        cached = {'data': cached_row[0]} if cached_row else None
+    else:
+        cached = db_execute(db,
+            'SELECT data FROM monthly_cache WHERE year = ? AND month = ?', (year, month)
+        ).fetchone()
     if cached:
         cached_data = json.loads(cached['data'])
         for r in cached_data.get('reports', []):
@@ -530,9 +536,15 @@ def api_monthly():
         return jsonify(cached_data)
 
     # Build from daily reports
-    rows = db_execute(db,
-        "SELECT * FROM daily_reports WHERE date LIKE ? ORDER BY date ASC", (padded + '%',)
-    ).fetchall()
+    if USE_POSTGRES:
+        cur = db.cursor()
+        cur.execute("SELECT * FROM daily_reports WHERE date LIKE %s ORDER BY date ASC", (padded + '%',))
+        col_names = [d[0] for d in cur.description]
+        rows = [dict(zip(col_names, row)) for row in cur.fetchall()]
+    else:
+        rows = db_execute(db,
+            "SELECT * FROM daily_reports WHERE date LIKE ? ORDER BY date ASC", (padded + '%',)
+        ).fetchall()
 
     if not rows:
         return jsonify({'year': year, 'month': month, 'reports': [], 'summary': None})
@@ -597,10 +609,20 @@ def api_monthly():
     }
 
     # Cache
-    db_execute(db,
-        'INSERT OR REPLACE INTO monthly_cache (year, month, data, updated_at) VALUES (?, ?, ?, CURRENT_TIMESTAMP)',
-        (year, month, json.dumps(result, ensure_ascii=False))
-    )
+    cache_json = json.dumps(result, ensure_ascii=False)
+    if USE_POSTGRES:
+        cur = db.cursor()
+        cur.execute(
+            '''INSERT INTO monthly_cache (year, month, data, updated_at)
+               VALUES (%s, %s, %s, CURRENT_TIMESTAMP)
+               ON CONFLICT (year, month) DO UPDATE SET data=EXCLUDED.data, updated_at=EXCLUDED.updated_at''',
+            (year, month, cache_json)
+        )
+    else:
+        db.execute(
+            'INSERT OR REPLACE INTO monthly_cache (year, month, data, updated_at) VALUES (?, ?, ?, CURRENT_TIMESTAMP)',
+            (year, month, cache_json)
+        )
     db.commit()
 
     return jsonify(result)
