@@ -539,6 +539,10 @@ def api_monthly():
                     r['room_types'] = json.loads(r['room_types'])
                 except:
                     r['room_types'] = {}
+        # 兼容旧缓存：若 summary 缺少 totalRooms，当场补上
+        s = cached_data.get('summary', {})
+        if 'totalRooms' not in s and cached_data.get('reports'):
+            s['totalRooms'] = sum((r.get('total_rooms') or 0) for r in cached_data['reports'])
         return jsonify(cached_data)
 
     # Build from daily reports
