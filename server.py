@@ -612,6 +612,7 @@ def api_monthly():
             'totalIncome': total_income, 'avgIncome': avg_income,
             'avgOccupancy': avg_occ, 'avgRevpgr': avg_revpgr,
             'totalTax': total_tax, 'totalParking': total_parking,
+            'totalRooms': total_rooms,
             'channelData': ch, 'weeklyData': weekly, 'dailyTrend': trend
         },
         'reports': reports
