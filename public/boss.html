@@ -468,11 +468,25 @@
     }
 
     function showEmpty() {
-      document.getElementById('kpiGrid').innerHTML = `
-        <div class="empty-state" style="grid-column:1/-1">
-          <div class="icon">📭</div>
-          <p>暂无数据</p>
-        </div>`;
+      // 重置 KPI 卡片数值（不销毁 DOM 元素，避免切换月份后 renderKPIs 找不到元素）
+      document.getElementById('kpiReports').textContent = '—';
+      document.getElementById('kpiIncome').textContent = '—';
+      document.getElementById('kpiAvgIncome').textContent = '—';
+      document.getElementById('kpiOccupancy').textContent = '—';
+      document.getElementById('kpiAvgPrice').textContent = '—';
+      document.getElementById('kpiTotalRooms').textContent = '—';
+      document.getElementById('reportCountBadge').textContent = '0 天';
+
+      // 清空其他模块
+      document.getElementById('channelGrid').innerHTML = '<div class="empty-state" style="grid-column:1/-1"><div class="icon">📭</div><p>暂无数据</p></div>';
+      document.getElementById('roomtypeGrid').innerHTML = '<div class="empty-state" style="grid-column:1/-1"><div class="icon">📭</div><p>暂无数据</p></div>';
+      document.getElementById('dailyTableBody').innerHTML = '';
+
+      // 清除图表
+      if (roomsIncomeChart) { roomsIncomeChart.destroy(); roomsIncomeChart = null; }
+      if (occRevpgrChart) { occRevpgrChart.destroy(); occRevpgrChart = null; }
+      if (channelPieChart) { channelPieChart.destroy(); channelPieChart = null; }
+      if (roomtypeChart) { roomtypeChart.destroy(); roomtypeChart = null; }
     }
 
     // ============ 模块一：KPI ============
