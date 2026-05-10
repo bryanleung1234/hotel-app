@@ -557,6 +557,10 @@ def api_monthly():
     reports = []
     for r in rows:
         d = dict(r)
+        # 把 datetime 转成字符串（JSON 不可序列化 datetime）
+        for k, v in d.items():
+            if hasattr(v, 'isoformat'):
+                d[k] = v.isoformat()
         # 解析 room_types JSON
         if d.get('room_types'):
             try:
