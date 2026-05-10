@@ -635,6 +635,18 @@ def api_monthly():
 
     return jsonify(result)
 
+@app.route('/api/cache/clear/<int:year>/<int:month>', methods=['DELETE'])
+@login_required
+def api_cache_clear(year, month):
+    db = get_db()
+    if USE_POSTGRES:
+        cur = db.cursor()
+        cur.execute('DELETE FROM monthly_cache WHERE year = %s AND month = %s', (year, month))
+    else:
+        db.execute('DELETE FROM monthly_cache WHERE year = ? AND month = ?', (year, month))
+    db.commit()
+    return jsonify({'ok': True, 'year': year, 'month': month})
+
 @app.route('/api/reports/dates', methods=['GET'])
 @login_required
 def api_dates():
