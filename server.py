@@ -1555,7 +1555,10 @@ def api_clear():
 
 # --- Run ---------------------------------------------------------------------
 # 初始化数据库（gunicorn 模式下 if __name__ 不执行，必须放在这里）
-init_db()
+try:
+    init_db()
+except Exception as e:
+    print(f'[WARN] 数据库初始化失败（服务继续运行）: {e}')
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 3000))
