@@ -20,7 +20,10 @@ import json
 from functools import wraps
 from flask import Flask, request, jsonify, send_from_directory, g, send_file
 
-app = Flask(__name__, static_folder='public', static_url_path='')
+# 获取 server.py 所在目录的绝对路径（兼容本地和 Render 云环境）
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
+app = Flask(__name__, static_folder=os.path.join(BASE_DIR, 'public'), static_url_path='')
 app.config['SECRET_KEY'] = 'hotel-report-secret-key-2024'
 JWT_SECRET = app.config['SECRET_KEY']
 
@@ -34,7 +37,7 @@ if USE_POSTGRES:
     print(f'[DB] 使用 PostgreSQL')
 else:
     import sqlite3
-    app.config['DATABASE'] = os.path.join(os.path.dirname(__file__), 'hotel.db')
+    app.config['DATABASE'] = os.path.join(BASE_DIR, 'hotel.db')
     print(f'[DB] 使用 SQLite: {app.config["DATABASE"]}')
 
 # --- Database ----------------------------------------------------------------
@@ -1062,11 +1065,11 @@ def api_export_roomtypes():
 # --- Frontend ----------------------------------------------------------------
 @app.route('/')
 def index():
-    return send_from_directory('public', 'index.html')
+    return send_from_directory(os.path.join(BASE_DIR, 'public'), 'index.html')
 
 @app.route('/<page>.html')
 def page(page):
-    return send_from_directory('public', f'{page}.html')
+    return send_from_directory(os.path.join(BASE_DIR, 'public'), f'{page}.html')
 
 # --- Seed historical data ---------------------------------------------------
 @app.route('/api/seed', methods=['GET', 'POST'])
@@ -1551,8 +1554,10 @@ def api_clear():
     return jsonify({'success': True, 'message': '所有日报数据和月度缓存已清空'})
 
 # --- Run ---------------------------------------------------------------------
+# 初始化数据库（gunicorn 模式下 if __name__ 不执行，必须放在这里）
+init_db()
+
 if __name__ == '__main__':
-    init_db()
     port = int(os.environ.get('PORT', 3000))
     print(f'[HOTEL] Server started: http://localhost:{port}')
     print('[STAFF] Login: 19128957480 (any 6-digit code)')
