@@ -1,7 +1,11 @@
 ﻿# -*- coding: utf-8 -*-
 import sys, io
-sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
-sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8')
+# 某些云环境（如 Render）stdout 可能没有 buffer 属性，安全处理
+try:
+    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
+    sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8')
+except (AttributeError, io.UnsupportedOperation):
+    pass
 
 """
 酒店日报管理系统 - Python 后端

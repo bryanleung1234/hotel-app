@@ -1,7 +1,0 @@
-Traceback (most recent call last):
-  File "C:\Users\bryan\WorkBuddy\20260426211044\hotel-app\start_server.py", line 7, in <module>
-    import server
-  File "C:\Users\bryan\WorkBuddy\20260426211044\hotel-app\server.py", line 735
-    Frontend ───────────────────────────────────────────────────────────────
-             ^
-SyntaxError: invalid character '─' (U+2500)
