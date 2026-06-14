@@ -1560,6 +1560,29 @@ try:
 except Exception as e:
     print(f'[WARN] 数据库初始化失败（服务继续运行）: {e}')
 
+def _auto_seed_if_empty():
+    """PostgreSQL 空库时自动恢复历史数据，防止 Render 重置/过期导致数据丢失"""
+    try:
+        db = get_db()
+        cur = db.cursor()
+        cur.execute('SELECT COUNT(*) FROM daily_reports')
+        cnt = cur.fetchone()[0]
+        print(f'[AUTO-SEED] daily_reports 当前记录数: {cnt}')
+        if cnt == 0:
+            # 延迟调用 api_seed（此时 api_seed 已定义完毕）
+            import time as _time; _time.sleep(1)
+            try:
+                r = api_seed()
+                print(f'[AUTO-SEED] 自动恢复历史数据成功')
+            except Exception as e2:
+                print(f'[WARN] 自动seed失败: {e2}')
+        db.close()
+    except Exception as e:
+        print(f'[WARN] 自动seed跳过: {e}')
+
+import threading
+threading.Thread(target=_auto_seed_if_empty, daemon=True).start()
+
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 3000))
     print(f'[HOTEL] Server started: http://localhost:{port}')
