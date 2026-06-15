@@ -1562,21 +1562,22 @@ except Exception as e:
 
 def _auto_seed_if_empty():
     """PostgreSQL 空库时自动恢复历史数据，防止 Render 重置/过期导致数据丢失"""
+    import time as _time
+    _time.sleep(3)  # 等 gunicorn worker 完全就绪
     try:
-        db = get_db()
-        cur = db.cursor()
-        cur.execute('SELECT COUNT(*) FROM daily_reports')
-        cnt = cur.fetchone()[0]
-        print(f'[AUTO-SEED] daily_reports 当前记录数: {cnt}')
-        if cnt == 0:
-            # 延迟调用 api_seed（此时 api_seed 已定义完毕）
-            import time as _time; _time.sleep(1)
-            try:
-                r = api_seed()
-                print(f'[AUTO-SEED] 自动恢复历史数据成功')
-            except Exception as e2:
-                print(f'[WARN] 自动seed失败: {e2}')
-        db.close()
+        with app.app_context():
+            db = get_db()
+            cur = db.cursor()
+            cur.execute('SELECT COUNT(*) FROM daily_reports')
+            cnt = cur.fetchone()[0]
+            print(f'[AUTO-SEED] daily_reports 当前记录数: {cnt}')
+            if cnt == 0:
+                try:
+                    r = api_seed()
+                    print(f'[AUTO-SEED] 自动恢复历史数据成功')
+                except Exception as e2:
+                    print(f'[WARN] 自动seed失败: {e2}')
+            db.close()
     except Exception as e:
         print(f'[WARN] 自动seed跳过: {e}')
 
